@@ -1,0 +1,24 @@
+<html>
+<body>
+Reports tokens in instruction position that are not recognized NASM mnemonics.
+
+<p>
+    The first token of a statement is expected to be an instruction mnemonic, a label, or a
+    directive. This inspection flags an instruction-position token that matches none of the known
+    NASM mnemonics — most often a typo.
+</p>
+<p>
+    For example:
+</p>
+<pre><code>
+    mvo     rax, 1      ; typo for 'mov'
+    jmpp    .loop       ; not a real instruction
+</code></pre>
+<!-- tooltip end -->
+<p>
+    The mnemonic set covers the instructions the plugin models (including x87, SSE/AVX, BMI, and
+    AES-NI families). If you use an instruction the plugin does not yet know, disable this
+    inspection or report it so coverage can be extended.
+</p>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<html>
+<body>
+Reports instructions used with the wrong number of operands.
+
+<p>
+    Each instruction expects a fixed operand count (zero, one, two, or three). This inspection
+    flags statements that supply too few or too many operands for the mnemonic used.
+</p>
+<p>
+    For example:
+</p>
+<pre><code>
+    mov     rax             ; 'mov' requires two operands
+    ret     rax, rbx        ; 'ret' takes none (or one immediate)
+    inc                     ; 'inc' requires one operand
+</code></pre>
+<!-- tooltip end -->
+<p>
+    Instructions with optional operands (such as <code>ret</code> with an immediate, or
+    three-operand <code>imul</code>) accept their valid forms without warning.
+</p>
+</body>
+</html>

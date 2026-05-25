@@ -1,0 +1,24 @@
+<html>
+<body>
+Reports operand-size mismatches between the operands of a single instruction.
+
+<p>
+    Most x86 instructions require their register and memory operands to share the same width. This
+    inspection flags combinations like an 8-bit register with a 64-bit register, or a sized memory
+    operand that disagrees with its register counterpart — which the assembler rejects as a size
+    mismatch.
+</p>
+<p>
+    For example:
+</p>
+<pre><code>
+    mov     al, rbx     ; 8-bit destination, 64-bit source
+    add     eax, rbx    ; 32-bit and 64-bit operands
+</code></pre>
+<!-- tooltip end -->
+<p>
+    Sign/zero-extending moves (<code>movsx</code>, <code>movzx</code>, <code>movsxd</code>)
+    deliberately mix sizes and are not flagged.
+</p>
+</body>
+</html>

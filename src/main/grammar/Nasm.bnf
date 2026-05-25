@@ -1,0 +1,136 @@
+{
+  parserClass="me.lucaperri.dev.languages.parser.NasmParser"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="Nasm"
+  psiImplClassSuffix="Impl"
+  psiPackage="me.lucaperri.dev.languages.psi"
+  psiImplPackage="me.lucaperri.dev.languages.psi.impl"
+
+  elementTypeHolderClass="me.lucaperri.dev.languages.psi.NasmTypes"
+  elementTypeClass="me.lucaperri.dev.languages.parser.tokentypes.NasmElementType"
+  tokenTypeClass="me.lucaperri.dev.languages.parser.tokentypes.NasmTokenType"
+
+  tokens = [
+    EOL           = 'EOL'
+    COMMENT       = 'COMMENT'
+    DIRECTIVE     = 'DIRECTIVE'
+    SECTION_KW    = 'section'
+    SEGMENT_KW    = 'segment'
+    DATA_KW       = 'DATA_KW'
+    GLOBAL_KW     = 'global'
+    EXTERN_KW     = 'extern'
+    EQU_KW        = 'equ'
+    TIMES_KW      = 'times'
+    SIZE_SPEC     = 'SIZE_SPEC'
+    NUMBER        = 'NUMBER'
+    STRING        = 'STRING'
+    IDENTIFIER    = 'IDENTIFIER'
+    COLON         = ':'
+    COMMA         = ','
+    LBRACKET      = '['
+    RBRACKET      = ']'
+    PLUS          = '+'
+    MINUS         = '-'
+    STAR          = '*'
+    DOLLAR_DOLLAR = '$$'
+    DOLLAR        = '$'
+  ]
+}
+
+nasmFile ::= top_level_item*
+
+// Each top-level item must consume at least one token. The previous design used
+// a single all-optional `line` rule with `recoverWhile=line_recover`, which had
+// two bugs:
+//   1. Empty-match: when every part of `line` is optional, the `line*` outer
+//      loop produces a trailing "Empty element parsed in nasmFile" diagnostic.
+//   2. recoverWhile spillover: Grammar-Kit runs the recover predicate after
+//      successful parses too (`result || pinned`), not just failures. With
+//      `recover ::= !EOL`, after a successful line that consumed its EOL, the
+//      recover swallowed the entire NEXT line's tokens and flagged them as
+//      "unexpected".
+// The fix is two-pronged: split blank lines from content lines so each path
+// always advances at least one token, and drop the recoverWhile entirely.
+private top_level_item ::= blank_line | content_line
+
+private blank_line ::= EOL
+private content_line ::= (label_def stmt? | stmt | COMMENT) COMMENT? EOL?
+
+private stmt ::= preproc_directive
+               | section_stmt
+               | global_stmt
+               | extern_stmt
+               | times_stmt
+               | data_stmt
+               | equ_stmt
+               | data_label_def
+               | equ_label_def
+               | id_stmt
+
+// NASM preprocessor directives (%define, %include, %if, %macro, ...) use
+// SPACE-separated arguments, not comma-separated. `operand*` absorbs the common
+// shapes (`%define MAX 256`, `%include "f.inc"`, `%assign i i+1`) without
+// choking. Full macro-body parsing is out of scope for a syntax-aware plugin.
+preproc_directive ::= DIRECTIVE operand* {pin=1}
+
+// `name: equ 60` — colon-label followed by an equ statement. The no-colon form
+// `name equ 60` is handled separately by equ_label_def. equ_stmt starts with the
+// unique EQU_KW token, so it doesn't conflict with the IDENTIFIER-prefixed rules.
+equ_stmt ::= EQU_KW expression {pin=1}
+section_stmt ::= (SECTION_KW | SEGMENT_KW) operand_list {pin=1}
+global_stmt ::= GLOBAL_KW symbol_list {pin=1}
+extern_stmt ::= EXTERN_KW symbol_list {pin=1}
+times_stmt ::= TIMES_KW expression stmt {pin=1}
+data_stmt ::= DATA_KW operand_list {pin=1}
+
+// The three "name-bearing" forms in NASM. Kept as separate rules so that pin
+// can target a deterministic 2nd token (COLON / DATA_KW / EQU_KW), avoiding
+// the backtracking-with-frame-name problem that produced spurious "unexpected"
+// annotations when label_def folded all three alternatives into one rule.
+label_def      ::= IDENTIFIER COLON {
+  pin=2
+  mixin="me.lucaperri.dev.languages.psi.impl.NasmLabelDefMixin"
+  implements="me.lucaperri.dev.languages.psi.NasmNamedElement"
+}
+data_label_def ::= IDENTIFIER DATA_KW operand_list {
+  pin=2
+  mixin="me.lucaperri.dev.languages.psi.impl.NasmLabelDefMixin"
+  implements="me.lucaperri.dev.languages.psi.NasmNamedElement"
+}
+equ_label_def  ::= IDENTIFIER EQU_KW expression {
+  pin=2
+  mixin="me.lucaperri.dev.languages.psi.impl.NasmLabelDefMixin"
+  implements="me.lucaperri.dev.languages.psi.NasmNamedElement"
+}
+
+id_stmt ::= IDENTIFIER operand_list?
+
+// label_ref wraps IDENTIFIER tokens that are in reference position (operands,
+// extern/global symbol lists). A mixin on this rule overrides findReferenceAt,
+// getReference, and getReferences directly. This is required because:
+//   - LeafPsiElement.getReferences() never consults PsiReferenceService.
+//   - ASTWrapperPsiElement.findReferenceAt() descends into the IDENTIFIER leaf
+//     child first and returns null before reaching the composite's getReferences().
+// The mixin short-circuits that descent so GotoDeclarationAction, Find Usages,
+// and Rename all resolve correctly in both the IDE and the test harness.
+label_ref ::= IDENTIFIER {
+    mixin="me.lucaperri.dev.languages.psi.impl.NasmLabelRefMixin"
+}
+
+private symbol_list ::= label_ref (COMMA label_ref)*
+
+operand_list ::= operand (COMMA operand)*
+operand ::= SIZE_SPEC? (memory_operand | expression)
+
+// `mem_prefix` captures NASM's `rel` / `abs` RIP-relative keywords, which are
+// bare identifiers that appear only directly inside `[ ]` and are followed by
+// another primary. The `&primary` and-predicate (zero-width lookahead) means an
+// identifier is only treated as a prefix when a real address expression follows,
+// so `[rax]` still parses `rax` as the expression, not a dangling prefix.
+memory_operand ::= LBRACKET mem_prefix? expression RBRACKET {pin=1}
+private mem_prefix ::= IDENTIFIER &primary
+
+expression ::= primary ((PLUS | MINUS | STAR) primary)*
+private primary ::= DOLLAR_DOLLAR | DOLLAR | NUMBER | STRING | label_ref

@@ -1,0 +1,248 @@
+    # MIPS instruction & register showcase (Advanced Assembly plugin)
+    # Hover any instruction or register for its documentation popup; Ctrl/Cmd-click
+    # a label to jump to its definition. Exercises the mnemonic and register
+    # coverage the plugin understands.
+
+        .data
+    msg:        .asciiz "hello"
+    value:      .word   42
+    arr:        .word   1, 2, 3, 4, 5
+
+        .text
+        .globl  main
+
+    # ─── Arithmetic (signed) ──────────────────────────────────────────────────────
+    main:
+        add     $t0, $t1, $t2
+        addu    $t0, $t1, $t2
+        addi    $t0, $t1, 10
+        addiu   $t0, $t1, 10
+        sub     $t0, $t1, $t2
+        subu    $t0, $t1, $t2
+
+    # ─── Multiply & Divide ────────────────────────────────────────────────────────
+    muldiv:
+        mult    $t1, $t2
+        multu   $t1, $t2
+        mul     $t0, $t1, $t2
+        mfhi    $t0
+        mflo    $t0
+        mthi    $t0
+        mtlo    $t0
+        div     $t1, $t2
+        divu    $t1, $t2
+
+    # ─── Bitwise ──────────────────────────────────────────────────────────────────
+    bitwise:
+        and     $t0, $t1, $t2
+        andi    $t0, $t1, 0xFF
+        or      $t0, $t1, $t2
+        ori     $t0, $t1, 0x01
+        xor     $t0, $t1, $t2
+        xori    $t0, $t1, 0x0F
+        nor     $t0, $t1, $zero
+
+    # ─── Shifts ───────────────────────────────────────────────────────────────────
+    shifts:
+        sll     $t0, $t1, 3
+        srl     $t0, $t1, 2
+        sra     $t0, $t1, 1
+        sllv    $t0, $t1, $t2
+        srlv    $t0, $t1, $t2
+        srav    $t0, $t1, $t2
+
+    # ─── Comparison / Set ─────────────────────────────────────────────────────────
+    compare:
+        slt     $t0, $t1, $t2
+        sltu    $t0, $t1, $t2
+        slti    $t0, $t1, 10
+        sltiu   $t0, $t1, 10
+
+    # ─── Data Movement ────────────────────────────────────────────────────────────
+    datamov:
+        lui     $t0, 0x1000
+        li      $t0, 42
+        la      $t0, msg
+        move    $t0, $t1
+
+    # ─── Memory Load ──────────────────────────────────────────────────────────────
+    loads:
+        lw      $t0, 0($sp)
+        lh      $t0, 0($sp)
+        lhu     $t0, 0($sp)
+        lb      $t0, 0($sp)
+        lbu     $t0, 0($sp)
+
+    # ─── Memory Store ─────────────────────────────────────────────────────────────
+    stores:
+        sw      $t0, 0($sp)
+        sh      $t0, 0($sp)
+        sb      $t0, 0($sp)
+
+    # ─── Atomic (LL/SC) ───────────────────────────────────────────────────────────
+    atomic:
+        ll      $t0, 0($t1)
+        sc      $t0, 0($t1)
+
+    # ─── Branches ─────────────────────────────────────────────────────────────────
+    branches:
+        beq     $t0, $t1, .done
+        bne     $t0, $t1, .done
+        blt     $t0, $t1, .done
+        bgt     $t0, $t1, .done
+        ble     $t0, $t1, .done
+        bge     $t0, $t1, .done
+        beqz    $t0, .done
+        bnez    $t0, .done
+        bltz    $t0, .done
+        bgtz    $t0, .done
+        blez    $t0, .done
+        bgez    $t0, .done
+
+    # ─── Jumps ────────────────────────────────────────────────────────────────────
+    jumps:
+        j       .done
+        jal     my_func
+        jr      $ra
+        jalr    $t0
+
+    # ─── All Registers ────────────────────────────────────────────────────────────
+    registers:
+        # constant zero
+        move    $t0, $zero
+
+        # assembler temporary
+        move    $t0, $at
+
+        # return values
+        move    $t0, $v0
+        move    $t0, $v1
+
+        # arguments
+        move    $t0, $a0
+        move    $t0, $a1
+        move    $t0, $a2
+        move    $t0, $a3
+
+        # temporaries (caller-saved)
+        move    $s0, $t0
+        move    $s0, $t1
+        move    $s0, $t2
+        move    $s0, $t3
+        move    $s0, $t4
+        move    $s0, $t5
+        move    $s0, $t6
+        move    $s0, $t7
+        move    $s0, $t8
+        move    $s0, $t9
+
+        # saved (callee-saved)
+        move    $t0, $s0
+        move    $t0, $s1
+        move    $t0, $s2
+        move    $t0, $s3
+        move    $t0, $s4
+        move    $t0, $s5
+        move    $t0, $s6
+        move    $t0, $s7
+
+        # kernel reserved
+        move    $t0, $k0
+        move    $t0, $k1
+
+        # special
+        move    $t0, $gp
+        move    $t0, $sp
+        move    $t0, $fp
+        move    $t0, $ra
+
+    # ─── Function Call Example ────────────────────────────────────────────────────
+    my_func:
+        addiu   $sp, $sp, -8
+        sw      $ra, 4($sp)
+        sw      $s0, 0($sp)
+
+        # do work
+        move    $v0, $a0
+
+        lw      $ra, 4($sp)
+        lw      $s0, 0($sp)
+        addiu   $sp, $sp, 8
+        jr      $ra
+
+    # ─── Syscalls (MARS/SPIM) ─────────────────────────────────────────────────────
+    syscalls:
+        # print integer: $a0 = value
+        li      $v0, 1
+        li      $a0, 42
+        syscall
+
+        # print string: $a0 = address
+        li      $v0, 4
+        la      $a0, msg
+        syscall
+
+        # read integer → $v0
+        li      $v0, 5
+        syscall
+
+        # exit
+        li      $v0, 10
+        syscall
+
+    # ─── Misc ─────────────────────────────────────────────────────────────────────
+    misc:
+        nop
+        break
+        syscall
+
+    # ─── Conditional Move ─────────────────────────────────────────────────────────
+    condmove:
+        movn    $t0, $t1, $t2
+        movz    $t0, $t1, $t2
+
+    # ─── Rotate (MIPS32r2) ────────────────────────────────────────────────────────
+    rotate:
+        rotr    $t0, $t1, 4
+        rotrv   $t0, $t1, $t2
+
+    # ─── Count Leading Zeros / Ones ───────────────────────────────────────────────
+    count:
+        clz     $t0, $t1
+        clo     $t0, $t1
+
+    # ─── Bitfield Extract / Insert (MIPS32r2) ─────────────────────────────────────
+    bitfield:
+        ext     $t0, $t1, 4, 8
+        ins     $t0, $t1, 4, 8
+
+    # ─── Unconditional Branch ─────────────────────────────────────────────────────
+    ubranch:
+        b       .done
+        bal     my_func
+
+    # ─── Traps ────────────────────────────────────────────────────────────────────
+    traps:
+        teq     $t0, $t1
+        tne     $t0, $t1
+        tlt     $t0, $t1
+        tge     $t0, $t1
+        teqi    $t0, 0
+        tnei    $t0, 0
+        tlti    $t0, 0
+        tgei    $t0, 0
+
+    # ─── Synchronization ──────────────────────────────────────────────────────────
+    sync_demo:
+        sync
+
+    # ─── TLB (privileged) ─────────────────────────────────────────────────────────
+    tlb:
+        tlbr
+        tlbwi
+        tlbwr
+        tlbp
+
+    .done:
+        li      $v0, 10
+        syscall

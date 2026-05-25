@@ -1,0 +1,64 @@
+<!--
+  Default (light) scheme colors for the Advanced Assembly plugin's custom attribute keys.
+  Registered via <additionalTextAttributes scheme="Default"> in plugin.xml.
+  Only fills in keys the user hasn't explicitly customized in their color scheme.
+-->
+<list>
+  <option name="ASM_INSTRUCTION">
+    <value>
+      <option name="FOREGROUND" value="795e26"/>
+    </value>
+  </option>
+  <option name="ASM_REGISTER">
+    <value>
+      <option name="FOREGROUND" value="267f99"/>
+    </value>
+  </option>
+  <option name="ASM_LABEL_DEF">
+    <value>
+      <option name="FOREGROUND" value="d73a49"/>
+    </value>
+  </option>
+  <option name="ASM_LABEL_REF">
+    <value>
+      <option name="FOREGROUND" value="6f42c1"/>
+    </value>
+  </option>
+  <option name="ASM_DIRECTIVE">
+    <value>
+      <option name="FOREGROUND" value="0000ff"/>
+    </value>
+  </option>
+  <option name="ASM_KEYWORD">
+    <value>
+      <option name="FOREGROUND" value="0000ff"/>
+    </value>
+  </option>
+  <option name="ASM_SIZE_SPEC">
+    <value>
+      <option name="FOREGROUND" value="0451a5"/>
+      <option name="FONT_TYPE" value="2"/>
+    </value>
+  </option>
+  <option name="ASM_NUMBER">
+    <value>
+      <option name="FOREGROUND" value="098658"/>
+    </value>
+  </option>
+  <option name="ASM_STRING">
+    <value>
+      <option name="FOREGROUND" value="a31515"/>
+    </value>
+  </option>
+  <option name="ASM_COMMENT">
+    <value>
+      <option name="FOREGROUND" value="6a737d"/>
+      <option name="FONT_TYPE" value="2"/>
+    </value>
+  </option>
+  <option name="ASM_IDENTIFIER">
+    <value>
+      <option name="FOREGROUND" value="6f42c1"/>
+    </value>
+  </option>
+</list>

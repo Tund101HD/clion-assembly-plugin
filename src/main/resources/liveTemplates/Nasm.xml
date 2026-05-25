@@ -1,0 +1,68 @@
+<templateSet group="NASM">
+
+    <template name="prol"
+              value="push rbp&#10;mov rbp, rsp&#10;$END$"
+              description="Function prologue (x86_64 System V)"
+              toReformat="false"
+              toShortenFQNames="false">
+        <context>
+            <option name="NASM" value="true"/>
+        </context>
+    </template>
+
+    <template name="epil"
+              value="mov rsp, rbp&#10;pop rbp&#10;ret"
+              description="Function epilogue (x86_64 System V)"
+              toReformat="false"
+              toShortenFQNames="false">
+        <context>
+            <option name="NASM" value="true"/>
+        </context>
+    </template>
+
+    <template name="exit"
+              value="mov rax, 60&#10;mov rdi, $CODE$&#10;syscall"
+              description="Exit syscall (Linux x86_64)"
+              toReformat="false"
+              toShortenFQNames="false">
+        <variable name="CODE" expression="" defaultValue="&quot;0&quot;" alwaysStopAt="true"/>
+        <context>
+            <option name="NASM" value="true"/>
+        </context>
+    </template>
+
+    <template name="wrt"
+              value="mov rax, 1            ; sys_write&#10;mov rdi, 1            ; stdout&#10;lea rsi, [$MSG$]&#10;mov rdx, $LEN$&#10;syscall"
+              description="Write to stdout (Linux x86_64)"
+              toReformat="false"
+              toShortenFQNames="false">
+        <variable name="MSG" expression="" defaultValue="&quot;msg&quot;" alwaysStopAt="true"/>
+        <variable name="LEN" expression="" defaultValue="&quot;len&quot;" alwaysStopAt="true"/>
+        <context>
+            <option name="NASM" value="true"/>
+        </context>
+    </template>
+
+    <template name="main"
+              value="section .text&#10;global _start&#10;&#10;_start:&#10;    $END$"
+              description="Bare _start entry scaffold (Linux x86_64)"
+              toReformat="false"
+              toShortenFQNames="false">
+        <context>
+            <option name="NASM" value="true"/>
+        </context>
+    </template>
+
+    <template name="dataz"
+              value="$NAME$: db &quot;$VALUE$&quot;, 0&#10;$NAME$_len equ &#36; - $NAME$ - 1"
+              description="Zero-terminated string with length constant"
+              toReformat="false"
+              toShortenFQNames="false">
+        <variable name="NAME" expression="" defaultValue="&quot;msg&quot;" alwaysStopAt="true"/>
+        <variable name="VALUE" expression="" defaultValue="&quot;Hello, world!&quot;" alwaysStopAt="true"/>
+        <context>
+            <option name="NASM" value="true"/>
+        </context>
+    </template>
+
+</templateSet>

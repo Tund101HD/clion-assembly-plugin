@@ -1,0 +1,16 @@
+.DS_Store
+.gradle
+.idea
+.intellijPlatform
+.kotlin
+build
+/src/main/gen/
+/.claude/
+
+# Downloaded font cache for scripts/vectorize_icons.py — re-downloaded on demand.
+scripts/JetBrainsMono-Bold.ttf
+
+# Marketplace publish secrets — see .secrets.properties.example.
+.secrets.properties
+.secrets/
+/.secrets.properties.example

@@ -1,0 +1,325 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin url="https://lucidev.me/tools/clion-assembly-plugin">
+    <id>me.lucaperri.dev.languages</id>
+    <name>Advanced Assembly</name>
+    <vendor email="business.lucaperri@gmail.com" url="https://lucidev.me">Luca Perri</vendor>
+    <description><![CDATA[
+        <h2>First-class NASM and MIPS support for CLion</h2>
+
+        <p>Full editor intelligence, project generation, build pipeline, and a working
+        cross-architecture debugger backed by QEMU user-mode emulation &mdash; for engineers,
+        students, and hobbyists who want to write assembly with the same comfort
+        CLion provides for C/C++.</p>
+
+        <p>Detailed feature tour and walkthroughs:
+        <a href="https://lucidev.me/tools/clion-assembly-plugin">lucidev.me/tools/clion-assembly-plugin</a></p>
+
+        <h3>Supported languages</h3>
+        <ul>
+            <li><b>NASM</b> &mdash; Intel x86/x64 &mdash; <code>.nasm</code>, <code>.asm</code>, <code>.inc</code></li>
+            <li><b>MIPS</b> &mdash; MIPS32 &mdash; <code>.mips</code>, <code>.s</code></li>
+        </ul>
+
+        <h3>Editor</h3>
+        <ul>
+            <li>Customizable syntax highlighting (Settings &rarr; Editor &rarr; Color Scheme)</li>
+            <li>Context-aware completion: instructions, registers, labels, cross-file <code>extern</code> symbols</li>
+            <li>Hover docs for x86/SSE/AVX/AVX2/BMI2/AES and MIPS32r2 (branch-likely, traps, TLB, &hellip;)</li>
+            <li>Structure view, brace matching, folding, line-comment toggle, formatter</li>
+            <li>Live templates for prologue/epilogue, syscalls, and common patterns</li>
+        </ul>
+
+        <h3>Navigation &amp; refactoring</h3>
+        <ul>
+            <li>Cross-file label resolution: Goto Declaration, Find Usages, Rename, Goto Symbol</li>
+            <li>Line markers for label references</li>
+        </ul>
+
+        <h3>Inspections</h3>
+        <ul>
+            <li>Duplicate labels, unknown mnemonics, undefined symbols</li>
+            <li>NASM: operand size / arity / register-type mismatch</li>
+            <li>MIPS: operand constraints, unaligned memory offsets</li>
+            <li>External diagnostics from <code>nasm</code> / <code>mips-as</code> with clickable <code>file:line</code> console links</li>
+        </ul>
+
+        <h3>Project generation, run &amp; debug</h3>
+        <ul>
+            <li><i>New &rarr; Project &rarr; Assembly CMake Project</i> &mdash; pick NASM or MIPS, get a working CMake project, run config, and <code>.gitignore</code></li>
+            <li>Dedicated NASM/MIPS run configurations (independent of CMake)</li>
+            <li>Cross-arch debug via QEMU user-mode emulation: <code>qemu-mips-static</code> for MIPS, <code>qemu-x86_64-static</code> for NASM on ARM hosts</li>
+            <li>Gutter line breakpoints in <code>.nasm</code> / <code>.mips</code> files; step through assembly with bundled multi-arch GDB</li>
+            <li>Auto-created <i>(QEMU Server)</i> + <i>(GDB Debug)</i> run-config pair on project open</li>
+            <li>One-click <i>Verify Toolchain</i> + launch-time preflight pointing at missing <code>apt install</code> packages</li>
+        </ul>
+
+        <h3>Windows / WSL</h3>
+        <ul>
+            <li>Transparent WSL toolchain integration: detects your distro, runs tools inside WSL, maps <code>/mnt/c</code> &harr; <code>C:\</code> so breakpoints resolve in native Windows paths</li>
+        </ul>
+]]></description>
+
+    <depends>com.intellij.modules.clion</depends>
+    <depends>com.intellij.nativeDebug</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Content-based detection for contested extensions (.asm, .s, .inc) -->
+        <fileTypeOverrider implementation="me.lucaperri.dev.languages.filetypes.FileTypeOverride"/>
+
+        <!-- Uncontested extensions claimed directly -->
+        <fileType name="NASM"
+                  implementationClass="me.lucaperri.dev.languages.filetypes.NasmFileType"
+                  fieldName="INSTANCE"
+                  language="NASM"
+                  extensions="nasm"/>
+
+        <fileType name="MIPS"
+                  implementationClass="me.lucaperri.dev.languages.filetypes.MipsFileType"
+                  fieldName="INSTANCE"
+                  language="MIPS"
+                  extensions="mips"/>
+
+        <lang.parserDefinition language="NASM"
+                               implementationClass="me.lucaperri.dev.languages.parser.NasmParserDefinition"/>
+        <lang.parserDefinition language="MIPS"
+                               implementationClass="me.lucaperri.dev.languages.parser.MipsParserDefinition"/>
+
+        <lang.syntaxHighlighterFactory language="NASM"
+                                       implementationClass="me.lucaperri.dev.languages.highlighting.NasmSyntaxHighlighterFactory"/>
+        <lang.syntaxHighlighterFactory language="MIPS"
+                                       implementationClass="me.lucaperri.dev.languages.highlighting.MipsSyntaxHighlighterFactory"/>
+
+        <annotator language="NASM"
+                   implementationClass="me.lucaperri.dev.languages.highlighting.NasmAnnotator"/>
+        <annotator language="MIPS"
+                   implementationClass="me.lucaperri.dev.languages.highlighting.MipsAnnotator"/>
+
+        <colorSettingsPage implementation="me.lucaperri.dev.languages.highlighting.NasmColorSettingsPage"/>
+        <colorSettingsPage implementation="me.lucaperri.dev.languages.highlighting.MipsColorSettingsPage"/>
+
+        <additionalTextAttributes scheme="Default" file="colorSchemes/AdvancedAssemblyDefault.xml"/>
+        <additionalTextAttributes scheme="Darcula" file="colorSchemes/AdvancedAssemblyDarcula.xml"/>
+        <additionalTextAttributes scheme="Light"   file="colorSchemes/AdvancedAssemblyDefault.xml"/>
+        <additionalTextAttributes scheme="Dark"    file="colorSchemes/AdvancedAssemblyDarcula.xml"/>
+        <additionalTextAttributes scheme="IntelliJ Light" file="colorSchemes/AdvancedAssemblyDefault.xml"/>
+        <additionalTextAttributes scheme="Islands Light"          file="colorSchemes/AdvancedAssemblyDefault.xml"/>
+        <additionalTextAttributes scheme="Islands Dark"           file="colorSchemes/AdvancedAssemblyDarcula.xml"/>
+        <additionalTextAttributes scheme="Islands Contrast Light" file="colorSchemes/AdvancedAssemblyDefault.xml"/>
+        <additionalTextAttributes scheme="Islands Contrast Dark"  file="colorSchemes/AdvancedAssemblyDarcula.xml"/>
+        <additionalTextAttributes scheme="High contrast"          file="colorSchemes/AdvancedAssemblyDarcula.xml"/>
+
+        <lang.commenter language="NASM"
+                        implementationClass="me.lucaperri.dev.languages.editor.NasmCommenter"/>
+        <lang.commenter language="MIPS"
+                        implementationClass="me.lucaperri.dev.languages.editor.MipsCommenter"/>
+
+        <lang.braceMatcher language="NASM"
+                           implementationClass="me.lucaperri.dev.languages.editor.NasmBraceMatcher"/>
+        <lang.braceMatcher language="MIPS"
+                           implementationClass="me.lucaperri.dev.languages.editor.MipsBraceMatcher"/>
+
+        <lang.foldingBuilder language="NASM"
+                             implementationClass="me.lucaperri.dev.languages.editor.NasmFoldingBuilder"/>
+        <lang.foldingBuilder language="MIPS"
+                             implementationClass="me.lucaperri.dev.languages.editor.MipsFoldingBuilder"/>
+
+        <lang.psiStructureViewFactory language="NASM"
+                                      implementationClass="me.lucaperri.dev.languages.editor.NasmStructureViewFactory"/>
+        <lang.psiStructureViewFactory language="MIPS"
+                                      implementationClass="me.lucaperri.dev.languages.editor.MipsStructureViewFactory"/>
+
+        <psi.referenceContributor language="NASM"
+                                  implementation="me.lucaperri.dev.languages.references.NasmReferenceContributor"/>
+        <psi.referenceContributor language="MIPS"
+                                  implementation="me.lucaperri.dev.languages.references.MipsReferenceContributor"/>
+
+        <lang.findUsagesProvider language="NASM"
+                                 implementationClass="me.lucaperri.dev.languages.references.NasmFindUsagesProvider"/>
+        <lang.findUsagesProvider language="MIPS"
+                                 implementationClass="me.lucaperri.dev.languages.references.MipsFindUsagesProvider"/>
+
+        <gotoSymbolContributor implementation="me.lucaperri.dev.languages.references.NasmChooseByNameContributor"/>
+        <gotoSymbolContributor implementation="me.lucaperri.dev.languages.references.MipsChooseByNameContributor"/>
+
+        <lang.refactoringSupport language="NASM"
+                                 implementationClass="me.lucaperri.dev.languages.references.NasmRefactoringSupportProvider"/>
+        <lang.refactoringSupport language="MIPS"
+                                 implementationClass="me.lucaperri.dev.languages.references.MipsRefactoringSupportProvider"/>
+
+        <completion.contributor language="NASM"
+                                implementationClass="me.lucaperri.dev.languages.editor.NasmCompletionContributor"/>
+        <completion.contributor language="MIPS"
+                                implementationClass="me.lucaperri.dev.languages.editor.MipsCompletionContributor"/>
+
+        <lang.documentationProvider language="NASM"
+                                    implementationClass="me.lucaperri.dev.languages.docs.NasmDocumentationProvider"/>
+        <lang.documentationProvider language="MIPS"
+                                    implementationClass="me.lucaperri.dev.languages.docs.MipsDocumentationProvider"/>
+
+        <lang.formatter language="NASM"
+                        implementationClass="me.lucaperri.dev.languages.editor.NasmFormattingModelBuilder"/>
+        <lang.formatter language="MIPS"
+                        implementationClass="me.lucaperri.dev.languages.editor.MipsFormattingModelBuilder"/>
+
+        <externalAnnotator language="NASM"
+                           implementationClass="me.lucaperri.dev.languages.inspections.NasmExternalAnnotator"/>
+        <externalAnnotator language="MIPS"
+                           implementationClass="me.lucaperri.dev.languages.inspections.MipsExternalAnnotator"/>
+
+        <liveTemplateContext contextId="NASM"
+                             implementation="me.lucaperri.dev.languages.editor.NasmTemplateContextType"/>
+        <liveTemplateContext contextId="MIPS"
+                             implementation="me.lucaperri.dev.languages.editor.MipsTemplateContextType"/>
+
+        <defaultLiveTemplates file="/liveTemplates/Nasm.xml"/>
+        <defaultLiveTemplates file="/liveTemplates/Mips.xml"/>
+
+        <localInspection language="NASM"
+                         implementationClass="me.lucaperri.dev.languages.inspections.NasmDuplicateLabelInspection"
+                         shortName="NasmDuplicateLabel"
+                         displayName="Duplicate label"
+                         groupName="NASM"
+                         level="ERROR"
+                         enabledByDefault="true"/>
+        <localInspection language="MIPS"
+                         implementationClass="me.lucaperri.dev.languages.inspections.MipsDuplicateLabelInspection"
+                         shortName="MipsDuplicateLabel"
+                         displayName="Duplicate label"
+                         groupName="MIPS"
+                         level="ERROR"
+                         enabledByDefault="true"/>
+        <localInspection language="NASM"
+                         implementationClass="me.lucaperri.dev.languages.inspections.NasmUnknownMnemonicInspection"
+                         shortName="NasmUnknownMnemonic"
+                         displayName="Unknown mnemonic"
+                         groupName="NASM"
+                         level="ERROR"
+                         enabledByDefault="true"/>
+        <localInspection language="MIPS"
+                         implementationClass="me.lucaperri.dev.languages.inspections.MipsUnknownMnemonicInspection"
+                         shortName="MipsUnknownMnemonic"
+                         displayName="Unknown mnemonic"
+                         groupName="MIPS"
+                         level="ERROR"
+                         enabledByDefault="true"/>
+        <localInspection language="NASM"
+                         implementationClass="me.lucaperri.dev.languages.inspections.NasmUndefinedSymbolInspection"
+                         shortName="NasmUndefinedSymbol"
+                         displayName="Undefined symbol"
+                         groupName="NASM"
+                         level="ERROR"
+                         enabledByDefault="true"/>
+        <localInspection language="MIPS"
+                         implementationClass="me.lucaperri.dev.languages.inspections.MipsUndefinedOperandInspection"
+                         shortName="MipsUndefinedOperand"
+                         displayName="Undefined operand"
+                         groupName="MIPS"
+                         level="ERROR"
+                         enabledByDefault="true"/>
+        <localInspection language="NASM"
+                         implementationClass="me.lucaperri.dev.languages.inspections.NasmOperandSizeInspection"
+                         shortName="NasmOperandSizeMismatch"
+                         displayName="Operand size mismatch"
+                         groupName="NASM"
+                         level="ERROR"
+                         enabledByDefault="true"/>
+        <localInspection language="NASM"
+                         implementationClass="me.lucaperri.dev.languages.inspections.NasmArityInspection"
+                         shortName="NasmOperandArity"
+                         displayName="Wrong number of operands"
+                         groupName="NASM"
+                         level="ERROR"
+                         enabledByDefault="true"/>
+        <localInspection language="NASM"
+                         implementationClass="me.lucaperri.dev.languages.inspections.NasmOperandTypeInspection"
+                         shortName="NasmOperandTypeMismatch"
+                         displayName="Wrong operand register type"
+                         groupName="NASM"
+                         level="ERROR"
+                         enabledByDefault="true"/>
+        <localInspection language="MIPS"
+                         implementationClass="me.lucaperri.dev.languages.inspections.MipsOperandConstraintInspection"
+                         shortName="MipsOperandConstraint"
+                         displayName="Wrong operand type or count"
+                         groupName="MIPS"
+                         level="ERROR"
+                         enabledByDefault="true"/>
+        <localInspection language="MIPS"
+                         implementationClass="me.lucaperri.dev.languages.inspections.MipsAlignmentInspection"
+                         shortName="MipsUnalignedOffset"
+                         displayName="Unaligned memory offset"
+                         groupName="MIPS"
+                         level="ERROR"
+                         enabledByDefault="true"/>
+
+        <codeInsight.lineMarkerProvider language="NASM"
+                                        implementationClass="me.lucaperri.dev.languages.editor.NasmLineMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="MIPS"
+                                        implementationClass="me.lucaperri.dev.languages.editor.MipsLineMarkerProvider"/>
+
+        <applicationService
+                serviceImplementation="me.lucaperri.dev.languages.settings.AsmExecutableSettings"/>
+        <applicationConfigurable
+                groupId="root"
+                id="me.lucaperri.dev.assembly.settings.root"
+                instance="me.lucaperri.dev.languages.settings.AssemblyRootConfigurable"
+                displayName="Assembly"/>
+        <applicationConfigurable
+                parentId="me.lucaperri.dev.assembly.settings.root"
+                id="me.lucaperri.dev.assembly.settings.general"
+                instance="me.lucaperri.dev.languages.settings.AssemblyGeneralConfigurable"
+                displayName="General"/>
+        <applicationConfigurable
+                parentId="me.lucaperri.dev.assembly.settings.root"
+                id="me.lucaperri.dev.assembly.settings.executables"
+                instance="me.lucaperri.dev.languages.settings.AssemblyExecutablesConfigurable"
+                displayName="Executables"/>
+        <applicationConfigurable
+                parentId="me.lucaperri.dev.assembly.settings.root"
+                id="me.lucaperri.dev.assembly.settings.debugger"
+                instance="me.lucaperri.dev.languages.settings.AssemblyDebuggerConfigurable"
+                displayName="Debugger"/>
+
+        <notificationGroup id="Assembly Tooling"
+                           displayType="BALLOON"
+                           isLogByDefault="true"/>
+
+        <consoleFilterProvider implementation="me.lucaperri.dev.languages.inspections.AsmConsoleFilterProvider"/>
+
+        <configurationType implementation="me.lucaperri.dev.languages.run.NasmRunConfigurationType"/>
+        <configurationType implementation="me.lucaperri.dev.languages.run.MipsRunConfigurationType"/>
+        <configurationType implementation="me.lucaperri.dev.languages.run.debug.MipsQemuServerRunConfigurationType"/>
+        <configurationType implementation="me.lucaperri.dev.languages.run.debug.NasmQemuServerRunConfigurationType"/>
+
+        <runConfigurationProducer implementation="me.lucaperri.dev.languages.run.NasmRunConfigurationProducer"/>
+        <runConfigurationProducer implementation="me.lucaperri.dev.languages.run.MipsRunConfigurationProducer"/>
+
+        <directoryProjectGenerator implementation="me.lucaperri.dev.languages.run.project.AsmCLionProjectGenerator"/>
+
+        <fileTemplateGroup implementation="me.lucaperri.dev.languages.editor.AsmFileTemplateGroupDescriptorFactory"/>
+
+        <startupActivity implementation="me.lucaperri.dev.languages.run.AsmRunConfigurationCreator"/>
+    </extensions>
+
+    <!-- Enables gutter line breakpoints in .nasm/.mips files for the native debugger. -->
+    <extensions defaultExtensionNs="cidr.debugger">
+        <lineBreakpointFileTypesProvider
+            implementation="me.lucaperri.dev.languages.run.debug.AsmLineBreakpointFileTypesProvider"/>
+    </extensions>
+
+    <projectListeners>
+        <!-- Removes CLion's auto-created (and broken) CMake Application config for MIPS targets. -->
+        <listener class="me.lucaperri.dev.languages.run.debug.MipsCmakeConfigSuppressor"
+                  topic="com.intellij.execution.RunManagerListener"/>
+    </projectListeners>
+
+    <actions>
+        <action id="me.lucaperri.dev.languages.run.project.NewAsmProjectAction"
+                class="me.lucaperri.dev.languages.run.project.NewAsmProjectAction"
+                text="Assembly CMake Project"
+                description="Generate CMakeLists.txt and a starter assembly file">
+            <add-to-group group-id="NewGroup" anchor="last"/>
+        </action>
+    </actions>
+
+</idea-plugin>

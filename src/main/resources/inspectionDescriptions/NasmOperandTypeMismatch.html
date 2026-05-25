@@ -1,0 +1,26 @@
+<html>
+<body>
+Reports operands whose kind is incompatible with the instruction's expected operand types.
+
+<p>
+    Many x86 instructions constrain each operand to a specific kind — a register, a memory
+    reference, or an immediate. This inspection flags combinations the assembler rejects, such as
+    writing to an immediate, supplying an immediate where only a register or memory operand is
+    allowed, or using two memory operands in an instruction that permits at most one.
+</p>
+<p>
+    For example:
+</p>
+<pre><code>
+    mov     5, rax      ; cannot write to an immediate
+    mov     [a], [b]    ; two memory operands not allowed
+    push    [rax], rbx  ; push takes a single operand
+</code></pre>
+<!-- tooltip end -->
+<p>
+    The plugin is a navigation and editing aid, not a full assembler — <code>nasm</code> remains
+    the source of truth. Disable this inspection if it conflicts with macros or instruction forms
+    the plugin does not model.
+</p>
+</body>
+</html>

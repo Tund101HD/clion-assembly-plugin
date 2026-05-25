@@ -1,0 +1,10 @@
+<html>
+<body>
+Reports labels, data variables, and <code>equ</code> constants whose name collides with another
+definition in the same file. NASM requires that every name be defined at most once across all
+three forms (<code>foo:</code>, <code>foo db 0</code>, <code>FOO equ 1</code>) — duplicates produce
+"symbol redefined" errors at assemble time.
+<p>
+Only definitions after the first are flagged. Rename the duplicate or merge the definitions.
+</body>
+</html>

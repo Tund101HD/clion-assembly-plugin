@@ -1,0 +1,25 @@
+<html>
+<body>
+Reports operands that violate a MIPS instruction's operand constraints.
+
+<p>
+    MIPS instructions are strict about operand kinds and counts: register-type instructions expect
+    registers, immediate-type instructions expect a constant in a specific field, and each
+    instruction has a fixed arity. This inspection flags operands of the wrong kind or count — for
+    instance an immediate where a register is required, or vice versa.
+</p>
+<p>
+    For example:
+</p>
+<pre><code>
+    addi    $t0, $t1, $t2   ; 'addi' expects an immediate; use 'add'
+    add     $t0, $t1, 5     ; 'add' expects a register; use 'addi'
+    sll     $t0, $t1        ; missing the shift-amount operand
+</code></pre>
+<!-- tooltip end -->
+<p>
+    Pseudo-instructions are checked against their accepted forms. The assembler remains the final
+    authority on correctness.
+</p>
+</body>
+</html>

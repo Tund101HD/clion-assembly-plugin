@@ -1,0 +1,24 @@
+<html>
+<body>
+Reports tokens in instruction position that are not recognized MIPS mnemonics.
+
+<p>
+    The first token of a statement is expected to be an instruction mnemonic, a label, or a
+    directive. This inspection flags an instruction-position token that matches none of the known
+    MIPS mnemonics (real instructions and common pseudo-instructions) — most often a typo.
+</p>
+<p>
+    For example:
+</p>
+<pre><code>
+    addd    $t0, $t1, $t2   ; typo for 'add'
+    jjr     $ra             ; not a real instruction
+</code></pre>
+<!-- tooltip end -->
+<p>
+    Pseudo-instructions accepted by common assemblers (e.g. <code>li</code>, <code>la</code>,
+    <code>move</code>, <code>nop</code>, <code>b</code>) are recognized. If you use a mnemonic the
+    plugin does not yet know, disable this inspection or report it.
+</p>
+</body>
+</html>

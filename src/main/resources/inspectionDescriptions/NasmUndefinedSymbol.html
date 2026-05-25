@@ -1,0 +1,24 @@
+<html>
+<body>
+Reports references to symbols that are neither defined in this file nor declared <code>extern</code>.
+
+<p>
+    A symbol used as a jump/call target or operand must resolve to a label, a data definition, an
+    <code>equ</code> constant, or an <code>extern</code> declaration — in this file or, for
+    <code>extern</code> names, another translation unit. Unresolved names produce "symbol not
+    defined" errors at link time.
+</p>
+<p>
+    For example:
+</p>
+<pre><code>
+    jmp     nowhere     ; 'nowhere' is never defined and not declared extern
+</code></pre>
+<!-- tooltip end -->
+<p>
+    Cross-file references are resolved against other NASM files in the project. If a name is
+    provided by a library or another object file, declare it with <code>extern</code> to silence
+    the warning.
+</p>
+</body>
+</html>

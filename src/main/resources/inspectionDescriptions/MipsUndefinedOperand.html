@@ -1,0 +1,23 @@
+<html>
+<body>
+Reports references to labels or symbols that are not defined in this file.
+
+<p>
+    A name used as a branch/jump target or address operand must resolve to a label or data
+    definition. This inspection flags operands that look like symbol references but match no
+    definition, after accounting for registers and recognized mnemonics.
+</p>
+<p>
+    For example:
+</p>
+<pre><code>
+    j       undefined_label   ; no such label in this file
+    la      $a0, missing      ; 'missing' is not defined
+</code></pre>
+<!-- tooltip end -->
+<p>
+    The plugin is a navigation and editing aid; the assembler remains the source of truth for
+    final correctness.
+</p>
+</body>
+</html>

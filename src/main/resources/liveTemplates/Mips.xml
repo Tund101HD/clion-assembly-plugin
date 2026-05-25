@@ -1,0 +1,78 @@
+<templateSet group="MIPS">
+
+    <template name="prol"
+              value="addiu $sp, $sp, -$SIZE$&#10;sw $ra, 4($sp)&#10;sw $fp, 0($sp)&#10;move $fp, $sp&#10;$END$"
+              description="Function prologue with stack frame"
+              toReformat="false"
+              toShortenFQNames="false">
+        <variable name="SIZE" expression="" defaultValue="&quot;16&quot;" alwaysStopAt="true"/>
+        <context>
+            <option name="MIPS" value="true"/>
+        </context>
+    </template>
+
+    <template name="epil"
+              value="lw $fp, 0($sp)&#10;lw $ra, 4($sp)&#10;addiu $sp, $sp, $SIZE$&#10;jr $ra"
+              description="Function epilogue"
+              toReformat="false"
+              toShortenFQNames="false">
+        <variable name="SIZE" expression="" defaultValue="&quot;16&quot;" alwaysStopAt="true"/>
+        <context>
+            <option name="MIPS" value="true"/>
+        </context>
+    </template>
+
+    <template name="exit"
+              value="li $v0, 10&#10;syscall"
+              description="Exit syscall (MARS/SPIM)"
+              toReformat="false"
+              toShortenFQNames="false">
+        <context>
+            <option name="MIPS" value="true"/>
+        </context>
+    </template>
+
+    <template name="pri"
+              value="li $v0, 1&#10;move $a0, $REG$&#10;syscall"
+              description="Print integer syscall (MARS/SPIM)"
+              toReformat="false"
+              toShortenFQNames="false">
+        <variable name="REG" expression="" defaultValue="&quot;&#36;t0&quot;" alwaysStopAt="true"/>
+        <context>
+            <option name="MIPS" value="true"/>
+        </context>
+    </template>
+
+    <template name="prs"
+              value="li $v0, 4&#10;la $a0, $LABEL$&#10;syscall"
+              description="Print string syscall (MARS/SPIM)"
+              toReformat="false"
+              toShortenFQNames="false">
+        <variable name="LABEL" expression="" defaultValue="&quot;msg&quot;" alwaysStopAt="true"/>
+        <context>
+            <option name="MIPS" value="true"/>
+        </context>
+    </template>
+
+    <template name="rdi"
+              value="li $v0, 5&#10;syscall&#10;move $REG$, $v0"
+              description="Read integer syscall (MARS/SPIM)"
+              toReformat="false"
+              toShortenFQNames="false">
+        <variable name="REG" expression="" defaultValue="&quot;&#36;t0&quot;" alwaysStopAt="true"/>
+        <context>
+            <option name="MIPS" value="true"/>
+        </context>
+    </template>
+
+    <template name="main"
+              value=".text&#10;.globl main&#10;&#10;main:&#10;    $END$"
+              description="Bare main entry scaffold"
+              toReformat="false"
+              toShortenFQNames="false">
+        <context>
+            <option name="MIPS" value="true"/>
+        </context>
+    </template>
+
+</templateSet>

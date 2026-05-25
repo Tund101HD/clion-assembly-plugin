@@ -1,0 +1,101 @@
+{
+  parserClass="me.lucaperri.dev.languages.parser.MipsParser"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="Mips"
+  psiImplClassSuffix="Impl"
+  psiPackage="me.lucaperri.dev.languages.psi"
+  psiImplPackage="me.lucaperri.dev.languages.psi.impl"
+
+  elementTypeHolderClass="me.lucaperri.dev.languages.psi.MipsTypes"
+  elementTypeClass="me.lucaperri.dev.languages.parser.tokentypes.MipsElementType"
+  tokenTypeClass="me.lucaperri.dev.languages.parser.tokentypes.MipsTokenType"
+
+  tokens = [
+    EOL           = 'EOL'
+    COMMENT       = 'COMMENT'
+    DIRECTIVE     = 'DIRECTIVE'
+    NUMBER        = 'NUMBER'
+    STRING        = 'STRING'
+    IDENTIFIER    = 'IDENTIFIER'
+    COLON         = ':'
+    COMMA         = ','
+    LPAREN        = '('
+    RPAREN        = ')'
+    PLUS          = '+'
+    MINUS         = '-'
+    EQUALS        = '='
+    DOT           = '.'
+  ]
+}
+
+mipsFile ::= top_level_item*
+
+// See the NASM grammar for the rationale: splitting blank lines from content
+// lines avoids empty-match diagnostics, and dropping recoverWhile prevents
+// successful lines from greedily consuming the next line's tokens.
+private top_level_item ::= blank_line | content_line
+
+private blank_line ::= EOL
+private content_line ::= (label_def stmt? | local_label_def stmt? | stmt | COMMENT) COMMENT? EOL?
+
+private stmt ::= directive_stmt
+               | assignment_def
+               | id_stmt
+
+directive_stmt ::= DIRECTIVE operand_list? {pin=1}
+
+// GAS-style symbol assignment: `msg_len = . - msg`. The lhs IDENTIFIER becomes a
+// MipsNamedElement (reusing MipsLabelDefMixin) so the new symbol participates in
+// find-usages, rename, and the duplicate-label inspection like a normal label.
+// pin=2 on EQUALS commits the rule after the `name =` prefix so backtracking
+// to id_stmt only happens when there's no `=`.
+assignment_def ::= IDENTIFIER EQUALS expression {
+  pin=2
+  mixin="me.lucaperri.dev.languages.psi.impl.MipsLabelDefMixin"
+  implements="me.lucaperri.dev.languages.psi.MipsNamedElement"
+}
+
+// Arithmetic over labels, numbers, and the location counter (`.`). Used only
+// inside assignment_def, so it can't accidentally swallow tokens elsewhere.
+expression ::= primary ((PLUS | MINUS) primary)*
+private primary ::= NUMBER | DOT | label_ref
+
+label_def ::= IDENTIFIER COLON {
+  pin=2
+  mixin="me.lucaperri.dev.languages.psi.impl.MipsLabelDefMixin"
+  implements="me.lucaperri.dev.languages.psi.MipsNamedElement"
+}
+
+// Handles GNU-as local labels like `.done:` that start with a dot. The lexer
+// tokenizes all dot-prefixed names as DIRECTIVE; this rule pins on the COLON
+// so `.done:` is claimed before directive_stmt can consume the DIRECTIVE token.
+local_label_def ::= DIRECTIVE COLON {
+  pin=2
+  mixin="me.lucaperri.dev.languages.psi.impl.MipsLabelDefMixin"
+  implements="me.lucaperri.dev.languages.psi.MipsNamedElement"
+}
+
+// Wraps a DIRECTIVE token in reference position (e.g. `beq $t0, $t1, .done`).
+local_label_ref ::= DIRECTIVE {
+    mixin="me.lucaperri.dev.languages.psi.impl.MipsLabelRefMixin"
+}
+
+id_stmt ::= IDENTIFIER operand_list?
+
+// label_ref wraps IDENTIFIER tokens in reference position. See the NASM grammar
+// for the full rationale — a mixin is required to override findReferenceAt.
+label_ref ::= IDENTIFIER {
+    mixin="me.lucaperri.dev.languages.psi.impl.MipsLabelRefMixin"
+}
+
+operand_list ::= operand (COMMA operand)*
+operand ::= memory_operand
+          | immediate
+          | label_ref
+          | local_label_ref
+          | STRING
+
+memory_operand ::= immediate? LPAREN IDENTIFIER RPAREN {pin=2}
+immediate ::= (PLUS | MINUS)? NUMBER

@@ -1,0 +1,25 @@
+<html>
+<body>
+Reports memory accesses whose constant offset is not aligned to the access size.
+
+<p>
+    Word and half-word memory instructions require naturally-aligned addresses on MIPS: a 4-byte
+    access (<code>lw</code>, <code>sw</code>, <code>ll</code>, <code>sc</code>) needs an offset
+    divisible by 4, and a 2-byte access (<code>lh</code>, <code>lhu</code>, <code>sh</code>) needs
+    an even offset. A misaligned constant offset triggers an address-error exception at run time.
+</p>
+<p>
+    For example:
+</p>
+<pre><code>
+    lw      $t0, 3($sp)     ; word access needs a 4-aligned offset
+    lh      $t0, 1($sp)     ; half-word access needs an even offset
+</code></pre>
+<!-- tooltip end -->
+<p>
+    Only constant offsets are checked; register-relative alignment cannot be known statically.
+    Byte accesses (<code>lb</code>, <code>sb</code>) have no alignment requirement and are never
+    flagged.
+</p>
+</body>
+</html>

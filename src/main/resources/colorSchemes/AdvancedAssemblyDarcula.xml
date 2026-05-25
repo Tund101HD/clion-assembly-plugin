@@ -1,0 +1,64 @@
+<!--
+  Default Darcula colors for the Advanced Assembly plugin's custom attribute keys.
+  Registered via <additionalTextAttributes scheme="Darcula"> in plugin.xml.
+  Only fills in keys the user hasn't explicitly customized in their color scheme.
+-->
+<list>
+  <option name="ASM_INSTRUCTION">
+    <value>
+      <option name="FOREGROUND" value="dcdcaa"/>
+    </value>
+  </option>
+  <option name="ASM_REGISTER">
+    <value>
+      <option name="FOREGROUND" value="9cdcfe"/>
+    </value>
+  </option>
+  <option name="ASM_LABEL_DEF">
+    <value>
+      <option name="FOREGROUND" value="e06c75"/>
+    </value>
+  </option>
+  <option name="ASM_LABEL_REF">
+    <value>
+      <option name="FOREGROUND" value="c678dd"/>
+    </value>
+  </option>
+  <option name="ASM_DIRECTIVE">
+    <value>
+      <option name="FOREGROUND" value="61afef"/>
+    </value>
+  </option>
+  <option name="ASM_KEYWORD">
+    <value>
+      <option name="FOREGROUND" value="61afef"/>
+    </value>
+  </option>
+  <option name="ASM_SIZE_SPEC">
+    <value>
+      <option name="FOREGROUND" value="61afef"/>
+      <option name="FONT_TYPE" value="2"/>
+    </value>
+  </option>
+  <option name="ASM_NUMBER">
+    <value>
+      <option name="FOREGROUND" value="56b6c2"/>
+    </value>
+  </option>
+  <option name="ASM_STRING">
+    <value>
+      <option name="FOREGROUND" value="98c379"/>
+    </value>
+  </option>
+  <option name="ASM_COMMENT">
+    <value>
+      <option name="FOREGROUND" value="7f848e"/>
+      <option name="FONT_TYPE" value="2"/>
+    </value>
+  </option>
+  <option name="ASM_IDENTIFIER">
+    <value>
+      <option name="FOREGROUND" value="c678dd"/>
+    </value>
+  </option>
+</list>
