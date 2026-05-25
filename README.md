@@ -107,7 +107,7 @@ The first command generates PSI/lexer classes from the JFlex and Grammar-Kit sou
 
 - 🌐 [Plugin page on lucidev.me](https://lucidev.me/tools/clion-assembly-plugin) — feature tour, walkthroughs, screenshots
 - 🏪 [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/me.lucaperri.dev.languages) *(once published)*
-- 🐛 [Issues](https://github.com/Tund101HD/clion-assembly-plugin/issues)
+- 🐛 [Issue tracker (YouTrack)](https://lucaperri.youtrack.cloud/projects/CAP/issues) — report bugs and feature requests
 - 📜 [Changelog](CHANGELOG.md)
 
 ---

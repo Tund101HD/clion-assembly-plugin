@@ -14,6 +14,9 @@
         <p>Detailed feature tour and walkthroughs:
         <a href="https://lucidev.me/tools/clion-assembly-plugin">lucidev.me/tools/clion-assembly-plugin</a></p>
 
+        <p>Found a bug or want to request a feature? Open an issue on the
+        <a href="https://lucaperri.youtrack.cloud/projects/CAP/issues">YouTrack issue tracker</a>.</p>
+
         <h3>Supported languages</h3>
         <ul>
             <li><b>NASM</b> &mdash; Intel x86/x64 &mdash; <code>.nasm</code>, <code>.asm</code>, <code>.inc</code></li>
