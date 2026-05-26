@@ -17,6 +17,14 @@ internal object AsmProjectTemplates {
     fun nasmCmake(name: String, format: String, cInterop: Boolean): String {
         val linkFlags = buildString {
             if (!cInterop) append("-nostdlib")
+            // Modern Ubuntu/Debian gcc defaults to PIE for executables; pure-asm
+            // ELF objects with absolute .bss/.data references fail to link with
+            // "relocation R_X86_64_32S against `.bss` can not be used when making
+            // a PIE object". -no-pie restores the classic non-PIC layout that
+            // matches what the source code is written against.
+            if (format == "elf64" || format == "elf32") {
+                if (isNotEmpty()) append(" "); append("-no-pie")
+            }
             if (format == "elf32") { if (isNotEmpty()) append(" "); append("-m32") }
         }
         val wslNote = if (PlatformHelper.isWindows) """

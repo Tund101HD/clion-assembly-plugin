@@ -80,6 +80,9 @@ object NasmBuildPipeline {
                 if (debug) add("-g")
                 if (nasmFormat == "elf32") add("-m32")
                 if (!cInterop) add("-nostdlib")
+                // Modern gcc defaults to PIE; pure-asm objects with absolute
+                // .bss/.data relocations fail with R_X86_64_32S errors otherwise.
+                if (nasmFormat == "elf64" || nasmFormat == "elf32") add("-no-pie")
                 add(pObj)
                 add("-o"); add(pOut)
             }
