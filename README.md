@@ -29,6 +29,8 @@ Built for students, hobbyists, and engineers who want to write assembly with the
 - MIPS operand constraints, unaligned memory offsets
 - External diagnostics surfaced from `nasm` / `mips-as` with clickable `file:line` console links
 
+> Live external diagnostics mirror what the underlying assembler emits on the command line. nasm/mips-as run in multiple passes and abort after the first hard error, so semantic warnings (e.g. *"byte data exceeds bounds"*) only surface once the red-squiggle errors above them are fixed — same as `gcc` or any other two-pass toolchain.
+
 **Project generation**
 - *New → Project → Assembly CMake Project* — pick NASM or MIPS, get a working CMake project with a starter source file, run config, and `.gitignore` pre-wired
 

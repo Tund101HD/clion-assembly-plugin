@@ -9,11 +9,9 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import me.lucaperri.dev.languages.psi.NasmFile
+import me.lucaperri.dev.languages.run.toolchain.PlatformHelper
 import me.lucaperri.dev.languages.settings.AsmExecutableSettings
-import java.io.File
 import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
 class NasmExternalAnnotator : ExternalAnnotator<NasmExternalAnnotator.Input, List<NasmExternalAnnotator.Diag>>() {
@@ -28,19 +26,29 @@ class NasmExternalAnnotator : ExternalAnnotator<NasmExternalAnnotator.Input, Lis
     }
 
     override fun doAnnotate(info: Input): List<Diag>? {
-        val nasm = findNasm() ?: return null
+        val nasm = resolveAsmTool(
+            configuredPath = AsmExecutableSettings.getInstance().nasmPath,
+            candidates = listOf("nasm"),
+            fallbackDirs = WINDOWS_NASM_FALLBACK_DIRS,
+        ) ?: return null
         val src = Files.createTempFile("nasm-check-", ".asm")
         val out = Files.createTempFile("nasm-check-", ".out")
         try {
             Files.writeString(src, info.text)
-            val cmd = listOf(
-                nasm.toString(),
+            // For WSL execution, file paths must be in `/mnt/c/...` form so the
+            // Linux nasm process can read/write them through the WSL mount.
+            val srcArg = if (nasm is ResolvedTool.Wsl) PlatformHelper.toWslPath(src.toString()) else src.toString()
+            val outArg = if (nasm is ResolvedTool.Wsl) PlatformHelper.toWslPath(out.toString()) else out.toString()
+            // Let nasm's default warning set through. Warnings like number-overflow
+            // (`db 300`, `mov al, 300`, etc.) are exactly the diagnostics that
+            // complement the PSI inspections — silencing them with `-w-all` made
+            // the annotator surface only hard errors and missed most overflow cases.
+            val cmd = nasm.commandLine(listOf(
                 "-f", info.format,
                 "-Xgnu",
-                "-w-all", "-w+error=none",
-                src.toString(),
-                "-o", out.toString()
-            )
+                srcArg,
+                "-o", outArg,
+            ))
             val proc = ProcessBuilder(cmd)
                 .redirectErrorStream(true)
                 .start()
@@ -122,25 +130,16 @@ class NasmExternalAnnotator : ExternalAnnotator<NasmExternalAnnotator.Input, Lis
         return null
     }
 
-    private fun findNasm(): Path? {
-        val configured = AsmExecutableSettings.getInstance().nasmPath
-        if (configured.isNotBlank()) {
-            val p = Paths.get(configured)
-            if (Files.isRegularFile(p) && Files.isReadable(p)) return p
-        }
-        val exe = if (isWindows()) "nasm.exe" else "nasm"
-        val paths = System.getenv("PATH")?.split(File.pathSeparator) ?: return null
-        for (p in paths) {
-            val candidate = Paths.get(p, exe)
-            if (Files.isRegularFile(candidate) && Files.isReadable(candidate)) return candidate
-        }
-        return null
-    }
-
-    private fun isWindows(): Boolean =
-        System.getProperty("os.name", "").startsWith("Windows", ignoreCase = true)
-
     companion object {
+        // Windows install locations to scan when nasm is not on the user's PATH.
+        // The official NASM installer drops here but doesn't update PATH by default;
+        // Chocolatey/Scoop installs are already on PATH so don't need entries.
+        private val WINDOWS_NASM_FALLBACK_DIRS: List<String> = listOfNotNull(
+            "C:\\Program Files\\NASM",
+            "C:\\Program Files (x86)\\NASM",
+            System.getenv("LOCALAPPDATA")?.let { "$it\\Programs\\NASM" },
+        )
+
         // NASM mode directive: `BITS 32`, `BITS 64`, or bracketed `[BITS 32]`.
         // First match wins; if a file later switches mode mid-stream, the file's
         // primary mode is the one declared at the top.

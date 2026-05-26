@@ -8,10 +8,8 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import me.lucaperri.dev.languages.psi.MipsFile
-import java.io.File
+import me.lucaperri.dev.languages.run.toolchain.PlatformHelper
 import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
 class MipsExternalAnnotator : ExternalAnnotator<MipsExternalAnnotator.Input, List<MipsExternalAnnotator.Diag>>() {
@@ -26,7 +24,10 @@ class MipsExternalAnnotator : ExternalAnnotator<MipsExternalAnnotator.Input, Lis
     }
 
     override fun doAnnotate(info: Input): List<Diag>? {
-        val asm = findAssembler() ?: return null
+        val asm = resolveAsmTool(
+            configuredPath = me.lucaperri.dev.languages.settings.AsmExecutableSettings.getInstance().mipsAsPath,
+            candidates = ASSEMBLER_CANDIDATES,
+        ) ?: return null
         val src = Files.createTempFile("mips-check-", ".s")
         val out = Files.createTempFile("mips-check-", ".o")
         try {
@@ -37,11 +38,15 @@ class MipsExternalAnnotator : ExternalAnnotator<MipsExternalAnnotator.Input, Lis
             // even though the actual build succeeds.
             val march = me.lucaperri.dev.languages.settings.AsmExecutableSettings
                 .getInstance().defaultMipsArch.marchFlag
-            val cmd = buildList {
-                add(asm.toString())
+            // For WSL execution, file paths must be in `/mnt/c/...` form so the
+            // Linux assembler can read/write them through the WSL mount.
+            val srcArg = if (asm is ResolvedTool.Wsl) PlatformHelper.toWslPath(src.toString()) else src.toString()
+            val outArg = if (asm is ResolvedTool.Wsl) PlatformHelper.toWslPath(out.toString()) else out.toString()
+            val args = buildList {
                 if (march != null) add("-march=$march")
-                addAll(listOf("-o", out.toString(), src.toString()))
+                addAll(listOf("-o", outArg, srcArg))
             }
+            val cmd = asm.commandLine(args)
             val proc = ProcessBuilder(cmd)
                 .redirectErrorStream(true)
                 .start()
@@ -87,34 +92,15 @@ class MipsExternalAnnotator : ExternalAnnotator<MipsExternalAnnotator.Input, Lis
             Diag(lineNum, severity, m.groupValues[3].trim())
         }.toList()
 
-    // Probe common cross-toolchain names. SPIM/MARS use different argument syntax so
-    // we don't try them here — only GNU-style `as` programs.
-    private val ASSEMBLER_CANDIDATES = listOf(
-        "mips-linux-gnu-as",
-        "mipsel-linux-gnu-as",
-        "mips64-linux-gnu-as",
-        "mips-elf-as",
-        "mips-as",
-    )
-
-    private fun findAssembler(): Path? {
-        val configured = me.lucaperri.dev.languages.settings.AsmExecutableSettings.getInstance().mipsAsPath
-        if (configured.isNotBlank()) {
-            val p = Paths.get(configured)
-            if (Files.isRegularFile(p) && Files.isReadable(p)) return p
-        }
-        val paths = System.getenv("PATH")?.split(File.pathSeparator) ?: return null
-        val suffix = if (isWindows()) ".exe" else ""
-        for (name in ASSEMBLER_CANDIDATES) {
-            val exe = name + suffix
-            for (p in paths) {
-                val candidate = Paths.get(p, exe)
-                if (Files.isRegularFile(candidate) && Files.isReadable(candidate)) return candidate
-            }
-        }
-        return null
+    companion object {
+        // Probe common cross-toolchain names. SPIM/MARS use different argument syntax so
+        // we don't try them here — only GNU-style `as` programs.
+        private val ASSEMBLER_CANDIDATES = listOf(
+            "mips-linux-gnu-as",
+            "mipsel-linux-gnu-as",
+            "mips64-linux-gnu-as",
+            "mips-elf-as",
+            "mips-as",
+        )
     }
-
-    private fun isWindows(): Boolean =
-        System.getProperty("os.name", "").startsWith("Windows", ignoreCase = true)
 }
