@@ -133,4 +133,9 @@ memory_operand ::= LBRACKET mem_prefix? expression RBRACKET {pin=1}
 private mem_prefix ::= IDENTIFIER &primary
 
 expression ::= primary ((PLUS | MINUS | STAR) primary)*
-private primary ::= DOLLAR_DOLLAR | DOLLAR | NUMBER | STRING | label_ref
+// Unary minus is added as an alternative in `primary` so it can prefix any
+// atom (`-1`, `-foo`, `-$`, `-$$`) and stack (`--1`). The recursion is safe
+// because the inner `primary` consumes at least one token before the parser
+// loops back on the outer expression's binary operators.
+private primary ::= DOLLAR_DOLLAR | DOLLAR | NUMBER | STRING | label_ref | unary_expr
+private unary_expr ::= MINUS primary

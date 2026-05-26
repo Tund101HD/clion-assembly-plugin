@@ -1,8 +1,9 @@
+#set ($DOLLAR = '$')##
     .data
 
     .text
     .globl main
 
 main:
-    li      ${'$'}v0, 10       # sys_exit
+    li      ${DOLLAR}v0, 10       # sys_exit
     syscall

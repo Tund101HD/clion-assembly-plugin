@@ -25,7 +25,14 @@ OCT_NUMBER       = (0[oO][0-7]+)|([0-7]+[oOqQ])
 DEC_NUMBER       = (0[dD])?[0-9]+
 NUMBER           = {HEX_NUMBER}|{BIN_NUMBER}|{OCT_NUMBER}|{DEC_NUMBER}
 
-STRING           = (\"([^\"\r\n\\]|\\.)*\") | ('([^'\r\n\\]|\\.)*')
+// Triple form covers NASM's three string syntaxes:
+//   "..."   — double-quoted, no escape processing in NASM itself
+//   '...'   — single-quoted, no escape processing
+//   `...`   — backtick, C-style escapes (\n, \t, \xNN, ...) are processed by NASM
+// The lexer only needs to recognise where strings start and end, not interpret
+// the escapes — so the same `\\.` pattern (backslash + any non-newline char)
+// safely consumes escapes in all three forms.
+STRING           = (\"([^\"\r\n\\]|\\.)*\") | ('([^'\r\n\\]|\\.)*') | (`([^`\r\n\\]|\\.)*`)
 
 
 // NASM preprocessor directives: %include, %define, %macro, %if, etc.
