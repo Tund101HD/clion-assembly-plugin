@@ -300,6 +300,8 @@
         <directoryProjectGenerator implementation="me.lucaperri.dev.languages.run.project.AsmCLionProjectGenerator"/>
 
         <fileTemplateGroup implementation="me.lucaperri.dev.languages.editor.AsmFileTemplateGroupDescriptorFactory"/>
+        <internalFileTemplate name="NASM Assembly File"/>
+        <internalFileTemplate name="MIPS Assembly File"/>
 
         <startupActivity implementation="me.lucaperri.dev.languages.run.AsmRunConfigurationCreator"/>
     </extensions>
