@@ -20,7 +20,10 @@ class NasmExternalAnnotator : ExternalAnnotator<NasmExternalAnnotator.Input, Lis
     data class Diag(val line: Int, val severity: HighlightSeverity, val message: String)
 
     override fun collectInformation(file: PsiFile, editor: Editor, hasErrors: Boolean): Input? {
-        if (hasErrors) return null
+        // Intentionally ignore `hasErrors`: a single PSI parse error elsewhere in
+        // the file would otherwise disable nasm diagnostics for the whole file.
+        // We hand nasm the raw text, not the PSI tree, so localized parser
+        // hiccups don't affect what nasm sees.
         if (file !is NasmFile) return null
         return Input(file.text, detectFormat(file))
     }

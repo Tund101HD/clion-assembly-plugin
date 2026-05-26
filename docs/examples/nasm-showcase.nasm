@@ -158,40 +158,40 @@ setcc_demo:
 
 ; ─── Jumps ───────────────────────────────────────────────────────────────────
 jumps:
-    jmp     .done
+    jmp     done
     ; signed
-    je      .done
-    jne     .done
-    jl      .done
-    jle     .done
-    jg      .done
-    jge     .done
-    jnge    .done
-    jng     .done
-    jnl     .done
-    jnle    .done
+    je      done
+    jne     done
+    jl      done
+    jle     done
+    jg      done
+    jge     done
+    jnge    done
+    jng     done
+    jnl     done
+    jnle    done
     ; unsigned
-    ja      .done
-    jae     .done
-    jb      .done
-    jbe     .done
-    jnbe    .done
-    jnb     .done
-    jnc     .done
-    jc      .done
-    jnae    .done
-    jna     .done
+    ja      done
+    jae     done
+    jb      done
+    jbe     done
+    jnbe    done
+    jnb     done
+    jnc     done
+    jc      done
+    jnae    done
+    jna     done
     ; other
-    jo      .done
-    jno     .done
-    js      .done
-    jns     .done
-    jp      .done
-    jpe     .done
-    jnp     .done
-    jpo     .done
-    jrcxz   .done
-    jecxz   .done
+    jo      done
+    jno     done
+    js      done
+    jns     done
+    jp      done
+    jpe     done
+    jnp     done
+    jpo     done
+    jrcxz   done
+    jecxz   done
 
 ; ─── Loop & Call ─────────────────────────────────────────────────────────────
     mov     rcx, 5
@@ -412,5 +412,5 @@ extregs:
     vmovaps ymm20, ymm21
     kmovq   k1, k2
 
-.done:
+done:
     hlt

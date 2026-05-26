@@ -18,7 +18,10 @@ class MipsExternalAnnotator : ExternalAnnotator<MipsExternalAnnotator.Input, Lis
     data class Diag(val line: Int, val severity: HighlightSeverity, val message: String)
 
     override fun collectInformation(file: PsiFile, editor: Editor, hasErrors: Boolean): Input? {
-        if (hasErrors) return null
+        // Intentionally ignore `hasErrors`: a single PSI parse error elsewhere in
+        // the file would otherwise disable mips-as diagnostics for the whole file.
+        // We hand mips-as the raw text, not the PSI tree, so localized parser
+        // hiccups don't affect what mips-as sees.
         if (file !is MipsFile) return null
         return Input(file.text)
     }
