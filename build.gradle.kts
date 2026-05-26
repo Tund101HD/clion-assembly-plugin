@@ -100,6 +100,6 @@ intellijPlatform {
 
 changelog {
     version.set(project.version.toString())
-    repositoryUrl.set("https://github.com/Tund101HD/clion-assembly-plugin")
+    repositoryUrl.set("https://github.com/Tund101HD/clion-nasm")
     groups.set(emptyList())
 }

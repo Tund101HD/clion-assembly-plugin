@@ -36,5 +36,5 @@ Initial public release.
 - Transparent WSL toolchain detection (binds to CLion's registered WSL toolchain, not `wsl.exe` defaults)
 - Auto-eviction of CLion's broken auto-created CMake Application config for MIPS targets
 
-[Unreleased]: https://github.com/Tund101HD/clion-assembly-plugin/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/Tund101HD/clion-assembly-plugin/releases/tag/v1.0.0
+[Unreleased]: https://github.com/Tund101HD/clion-nasm/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/Tund101HD/clion-nasm/releases/tag/v1.0.0

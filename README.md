@@ -1,6 +1,6 @@
 # Advanced Assembly for CLion
 
-[![Build](https://github.com/Tund101HD/clion-assembly-plugin/actions/workflows/build.yml/badge.svg)](https://github.com/Tund101HD/clion-assembly-plugin/actions/workflows/build.yml)
+[![Build](https://github.com/Tund101HD/clion-nasm/actions/workflows/build.yml/badge.svg)](https://github.com/Tund101HD/clion-nasm/actions/workflows/build.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 First-class **NASM** (Intel x86/x64) and **MIPS** (MIPS32) language support for JetBrains CLion — full editor intelligence, project generation, build pipeline, and a working cross-architecture debugger backed by QEMU user-mode emulation.
@@ -54,7 +54,7 @@ Built for students, hobbyists, and engineers who want to write assembly with the
 3. Install and restart
 
 **From disk**
-1. Download the latest `.zip` from [Releases](https://github.com/Tund101HD/clion-assembly-plugin/releases)
+1. Download the latest `.zip` from [Releases](https://github.com/Tund101HD/clion-nasm/releases)
 2. CLion → *Settings* → *Plugins* → ⚙ → *Install Plugin from Disk…*
 
 ---
