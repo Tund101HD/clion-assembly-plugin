@@ -51,9 +51,11 @@ object MipsBuildPipeline {
         val pSrc    = ph.argPath(src.path)
         val pOut    = ph.argPath(out.path)
 
-        val march = (marchOverride ?: settings.defaultMipsArch).marchFlag
-        return if (cInterop) buildCInterop(src, out, workDir, pSrc, pOut, assemblerArgs, march, console, ph, debug)
-        else                 buildPureAsm(src, out, outDir, workDir, pSrc, pOut, assemblerArgs, settings, march, console, ph, debug)
+        val effectiveArch = marchOverride ?: settings.defaultMipsArch
+        val march = effectiveArch.marchFlag
+        val mabi  = settings.defaultMipsAbi.resolve(effectiveArch)
+        return if (cInterop) buildCInterop(src, out, workDir, pSrc, pOut, assemblerArgs, march, mabi, console, ph, debug)
+        else                 buildPureAsm(src, out, outDir, workDir, pSrc, pOut, assemblerArgs, settings, march, mabi, console, ph, debug)
     }
 
     private fun buildCInterop(
@@ -61,6 +63,7 @@ object MipsBuildPipeline {
         pSrc: String, pOut: String,
         assemblerArgs: String,
         march: String?,
+        mabi: String?,
         console: ConsoleView,
         ph: PlatformHelper,
         debug: Boolean,
@@ -72,11 +75,12 @@ object MipsBuildPipeline {
         return try {
             val extra = ParametersList().also { it.addParametersString(assemblerArgs) }.list
             val debugFlags = if (debug) listOf("-g") else emptyList()
-            // Prepend -march; user-supplied `assemblerArgs` come later and gas/gcc
-            // take the LAST -march, so a free-text override in assemblerArgs still
+            // Prepend -march/-mabi; user-supplied `assemblerArgs` come later and gas/gcc
+            // take the LAST flag, so a free-text override in assemblerArgs still
             // wins over the dropdown / global default.
             val marchFlag  = march?.let { listOf("-march=$it") } ?: emptyList()
-            val args  = debugFlags + marchFlag + extra + listOf("-x", "assembler", "-static", pSrc, "-o", pOut)
+            val mabiFlag   = mabi?.let  { listOf("-mabi=$it")  } ?: emptyList()
+            val args  = debugFlags + marchFlag + mabiFlag + extra + listOf("-x", "assembler", "-static", pSrc, "-o", pOut)
             val r = CapturingProcessHandler(
                 GeneralCommandLine(ph.asmCommand(gccBin, args)).withWorkDirectory(File(workDir))
             ).runProcess()
@@ -92,6 +96,7 @@ object MipsBuildPipeline {
         assemblerArgs: String,
         settings: AsmExecutableSettings,
         march: String?,
+        mabi: String?,
         console: ConsoleView,
         ph: PlatformHelper,
         debug: Boolean,
@@ -112,10 +117,12 @@ object MipsBuildPipeline {
             // stepping. Verified empirically against binutils-mips-linux-gnu
             // shipped with Ubuntu 24.04.
             val debugFlags = if (debug) listOf("--gdwarf-2") else emptyList()
-            // -march goes between debug flags and user-supplied args so a free-text
-            // override in assemblerArgs (last -march wins for GAS) still takes precedence.
+            // -march/-mabi go between debug flags and user-supplied args so a
+            // free-text override in assemblerArgs (last flag wins for GAS) still
+            // takes precedence.
             val marchFlag  = march?.let { listOf("-march=$it") } ?: emptyList()
-            val args  = debugFlags + marchFlag + extra + listOf(pSrc, "-o", pObj)
+            val mabiFlag   = mabi?.let  { listOf("-mabi=$it")  } ?: emptyList()
+            val args  = debugFlags + marchFlag + mabiFlag + extra + listOf(pSrc, "-o", pObj)
             val r = CapturingProcessHandler(
                 GeneralCommandLine(ph.asmCommand(asBin, args)).withWorkDirectory(File(workDir))
             ).runProcess()

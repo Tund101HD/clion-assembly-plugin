@@ -35,18 +35,22 @@ class MipsExternalAnnotator : ExternalAnnotator<MipsExternalAnnotator.Input, Lis
         val out = Files.createTempFile("mips-check-", ".o")
         try {
             Files.writeString(src, info.text)
-            // Match the runtime build's -march so the live diagnostics don't disagree
-            // with what `Build` would emit. Without this, MIPS32r2 instructions like
-            // rotr/ext/seb get flagged "not available on your processor" in the editor
-            // even though the actual build succeeds.
-            val march = me.lucaperri.dev.languages.settings.AsmExecutableSettings
-                .getInstance().defaultMipsArch.marchFlag
+            // Match the runtime build's -march/-mabi so the live diagnostics don't
+            // disagree with what `Build` would emit. Without -march, MIPS32r2
+            // instructions like rotr/ext/seb get flagged "not available on your
+            // processor" even though the actual build succeeds. Without -mabi, ARM64
+            // hosts with a 64-bit MIPS toolchain emit "gp=32 used with a 64-bit ABI".
+            val settings = me.lucaperri.dev.languages.settings.AsmExecutableSettings.getInstance()
+            val arch  = settings.defaultMipsArch
+            val march = arch.marchFlag
+            val mabi  = settings.defaultMipsAbi.resolve(arch)
             // For WSL execution, file paths must be in `/mnt/c/...` form so the
             // Linux assembler can read/write them through the WSL mount.
             val srcArg = if (asm is ResolvedTool.Wsl) PlatformHelper.toWslPath(src.toString()) else src.toString()
             val outArg = if (asm is ResolvedTool.Wsl) PlatformHelper.toWslPath(out.toString()) else out.toString()
             val args = buildList {
                 if (march != null) add("-march=$march")
+                if (mabi  != null) add("-mabi=$mabi")
                 addAll(listOf("-o", outArg, srcArg))
             }
             val cmd = asm.commandLine(args)
