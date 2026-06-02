@@ -28,6 +28,7 @@ class AsmExecutableSettings : PersistentStateComponent<AsmExecutableSettings.Sta
         var platformOverride: PlatformOverride = PlatformOverride.AUTO,
         var defaultNasmArch: NasmArch = NasmArch.X64,
         var defaultMipsArch: MipsArch = MipsArch.MIPS32R2,
+        var defaultMipsAbi: MipsAbi = MipsAbi.AUTO,
         var defaultProjectType: ProjectType = ProjectType.NASM,
         // Debugger scaffolding — persisted but not yet consumed.
         var autoLaunchGdbOnQemu: Boolean = true,
@@ -75,6 +76,10 @@ class AsmExecutableSettings : PersistentStateComponent<AsmExecutableSettings.Sta
     var defaultMipsArch: MipsArch
         get() = state.defaultMipsArch
         set(value) { state.defaultMipsArch = value }
+
+    var defaultMipsAbi: MipsAbi
+        get() = state.defaultMipsAbi
+        set(value) { state.defaultMipsAbi = value }
 
     var defaultProjectType: ProjectType
         get() = state.defaultProjectType
