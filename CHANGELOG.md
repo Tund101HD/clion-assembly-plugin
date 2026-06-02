@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-06-02
+
+### Fixed
+
+- **Language ID conflict on startup** — `NasmLanguage` and `MipsLanguage` now call `Language.findLanguageByID` before registering, so the IDE no longer crashes with `ImplementationConflictException` when another plugin (e.g. a third-party NASM plugin) has already claimed the same language ID.
+- **Incorrect GitHub repository URLs** — all `clion-nasm` references reverted to the canonical `clion-assembly-plugin` repo across `gradle.properties`, `build.gradle.kts`, `README.md`, and `CHANGELOG.md`.
+
 ## [1.0.1] - 2026-05-27
 
 Hotfix release. The initial Marketplace upload was built from a pre-fix snapshot of the source tree, so users installing v1.0.0 on top of an existing CLion configuration hit a `Unknown bundled file template` assertion that prevented the plugin from loading. This release re-packages the post-fix tree and bundles the other late-cycle improvements that missed the original zip.
@@ -59,6 +66,7 @@ Initial public release.
 - Transparent WSL toolchain detection (binds to CLion's registered WSL toolchain, not `wsl.exe` defaults)
 - Auto-eviction of CLion's broken auto-created CMake Application config for MIPS targets
 
-[Unreleased]: https://github.com/Tund101HD/clion-assembly-plugin/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/Tund101HD/clion-assembly-plugin/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/Tund101HD/clion-assembly-plugin/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/Tund101HD/clion-assembly-plugin/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Tund101HD/clion-assembly-plugin/releases/tag/v1.0.0
