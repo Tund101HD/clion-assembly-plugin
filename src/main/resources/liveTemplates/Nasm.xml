@@ -65,4 +65,21 @@
         </context>
     </template>
 
+    <template name="lbldoc"
+              value="; $SUMMARY$&#10;; Operands: $OPERANDS$&#10;; Clobbers: $CLOBBERS$&#10;; Result:   $RESULT$&#10;; Flags:    $FLAGS$&#10;; Note:     $NOTE$"
+              description="Label documentation block (Operands/Clobbers/Result/Flags/Note)"
+              toReformat="false"
+              toShortenFQNames="false">
+        <variable name="SUMMARY"  expression="" defaultValue="&quot;one-line summary&quot;" alwaysStopAt="true"/>
+        <variable name="OPERANDS" expression="" defaultValue="&quot;rdi = ..., rsi = ...&quot;" alwaysStopAt="true"/>
+        <variable name="CLOBBERS" expression="" defaultValue="&quot;rax, rcx, rdx&quot;" alwaysStopAt="true"/>
+        <variable name="RESULT"   expression="" defaultValue="&quot;rax = ...&quot;" alwaysStopAt="true"/>
+        <variable name="FLAGS"    expression="" defaultValue="&quot;ZF, CF&quot;" alwaysStopAt="true"/>
+        <variable name="NOTE"     expression="" defaultValue="&quot;&quot;" alwaysStopAt="true"/>
+        <context>
+            <option name="NASM" value="true"/>
+        </context>
+    </template>
+
+
 </templateSet>

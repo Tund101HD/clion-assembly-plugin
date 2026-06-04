@@ -32,7 +32,14 @@ NUMBER           = {HEX_NUMBER}|{BIN_NUMBER}|{OCT_NUMBER}|{DEC_NUMBER}
 // The lexer only needs to recognise where strings start and end, not interpret
 // the escapes — so the same `\\.` pattern (backslash + any non-newline char)
 // safely consumes escapes in all three forms.
+//
+// The unterminated alternative (`STRING_OPEN`) accepts a string with no closing
+// quote, stopping at EOL. Without it, an in-progress `"hel` would lex its opening
+// quote as BAD_CHARACTER and the rest as an identifier, which (a) breaks brace-
+// style matching the IDE relies on for QuoteHandler decisions and (b) makes
+// half-typed strings vanish from semantic highlighting.
 STRING           = (\"([^\"\r\n\\]|\\.)*\") | ('([^'\r\n\\]|\\.)*') | (`([^`\r\n\\]|\\.)*`)
+STRING_OPEN      = (\"([^\"\r\n\\]|\\.)*) | ('([^'\r\n\\]|\\.)*) | (`([^`\r\n\\]|\\.)*)
 
 
 // NASM preprocessor directives: %include, %define, %macro, %if, etc.
@@ -89,8 +96,10 @@ SIZE_SPEC        = [bB][yY][tT][eE] | [wW][oO][rR][dD] | [dD][wW][oO][rR][dD] | 
 // Numbers
 {NUMBER}                            { return NasmTypes.NUMBER; }
 
-// Strings
+// Strings — terminated form must come first so JFlex's longest-match rule
+// keeps closing quotes whenever they are present.
 {STRING}                            { return NasmTypes.STRING; }
+{STRING_OPEN}                       { return NasmTypes.STRING; }
 
 // Identifiers — labels, symbol names, and (for now) mnemonics
 {IDENTIFIER}                        { return NasmTypes.IDENTIFIER; }

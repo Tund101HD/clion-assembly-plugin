@@ -68,7 +68,14 @@ class NasmDocumentationProvider : AbstractDocumentationProvider() {
     private fun PsiElement.lineNumber(): Int =
         containingFile?.viewProvider?.document?.getLineNumber(textRange.startOffset) ?: -1
 
-    private val tagRegex = Regex("""^(Input|Output|Flags|Clobbers)\s*:(.*)""", RegexOption.IGNORE_CASE)
+    // Section header: a single bare word followed by `:`. Permissive on purpose —
+    // the previous fixed list (Input|Output|Flags|Clobbers) silently swallowed
+    // unrecognised headers like `Result:` into whichever section happened to be
+    // open, which produced the "Results: appearing under Input:" misattribution.
+    // The canonical NASM-side sections (the same ones the built-in popups use)
+    // are listed in KNOWN_SECTION_ORDER below; user-defined sections still appear
+    // but sort to the end.
+    private val tagRegex = Regex("""^(\w+)\s*:(.*)""")
 
     private fun parseCommentDoc(lines: List<String>): Pair<String, List<Pair<String, String>>> {
         val descLines = mutableListOf<String>()
@@ -78,9 +85,13 @@ class NasmDocumentationProvider : AbstractDocumentationProvider() {
             val match = tagRegex.matchEntire(line)
             when {
                 match != null -> {
-                    val tag = match.groupValues[1].replaceFirstChar { it.uppercase() }
+                    val rawTag = match.groupValues[1].replaceFirstChar { it.uppercase() }
+                    // Old NASM convention used Input:/Output:; the canonical popup
+                    // labels are Operands:/Result:. Normalise so a comment written
+                    // with either vocabulary renders under the canonical header.
+                    val tag = HEADER_ALIASES[rawTag] ?: rawTag
                     val rest = match.groupValues[2].trim()
-                val content = mutableListOf<String>()
+                    val content = mutableListOf<String>()
                     if (rest.isNotEmpty()) content.add(rest)
                     sections.add(tag to content)
                 }
@@ -89,12 +100,35 @@ class NasmDocumentationProvider : AbstractDocumentationProvider() {
             }
         }
 
-        val order = listOf("Input", "Output", "Flags", "Clobbers")
         val description = descLines.filter { it.isNotEmpty() }.joinToString("<br>")
         val result = sections
-            .sortedBy { (tag, _) -> order.indexOf(tag).takeIf { it >= 0 } ?: Int.MAX_VALUE }
+            .sortedBy { (tag, _) ->
+                KNOWN_SECTION_ORDER.indexOf(tag).takeIf { it >= 0 } ?: Int.MAX_VALUE
+            }
             .map { (tag, tagLines) -> tag to tagLines.joinToString("<br>") }
         return description to result
+    }
+
+    private companion object {
+        // Canonical NASM popup labels. Instruction-only headers (Alias / Mode /
+        // Privilege / Requires) are deliberately omitted — they're valid section
+        // names in the built-in instruction docs but rarely apply to user labels,
+        // and excluding them from the order list just means a hand-written
+        // `Privilege:` section sorts to the end rather than between Mode and Note.
+        private val KNOWN_SECTION_ORDER = listOf(
+            "Flags", "Operands", "Clobbers", "Result", "Note",
+        )
+
+        // Legacy header → canonical header. Matched case-insensitively via the
+        // capitalised key (rawTag is already title-cased by the parser above).
+        private val HEADER_ALIASES = mapOf(
+            "Input"  to "Operands",
+            "Output" to "Result",
+            "Inputs"  to "Operands",
+            "Outputs" to "Result",
+            "Args"    to "Operands",
+            "Returns" to "Result",
+        )
     }
 
     private fun labelDoc(label: NasmNamedElement): String = buildString {

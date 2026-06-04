@@ -121,6 +121,11 @@
         <lang.braceMatcher language="MIPS"
                            implementationClass="me.lucaperri.dev.languages.editor.MipsBraceMatcher"/>
 
+        <lang.quoteHandler language="NASM"
+                           implementationClass="me.lucaperri.dev.languages.editor.NasmQuoteHandler"/>
+        <lang.quoteHandler language="MIPS"
+                           implementationClass="me.lucaperri.dev.languages.editor.MipsQuoteHandler"/>
+
         <lang.foldingBuilder language="NASM"
                              implementationClass="me.lucaperri.dev.languages.editor.NasmFoldingBuilder"/>
         <lang.foldingBuilder language="MIPS"

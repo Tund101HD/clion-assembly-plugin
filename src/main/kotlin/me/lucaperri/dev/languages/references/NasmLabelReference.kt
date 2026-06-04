@@ -98,13 +98,18 @@ class NasmLabelReference(element: PsiElement, range: TextRange) :
         val containing = element.containingFile as? NasmFile
 
         containing?.let { file ->
-            // Globals from the current file.
-            PsiTreeUtil.findChildrenOfType(file, NasmLabelDef::class.java)
-                .mapNotNull { it.name }
-                .filter { !it.isNasmLocalLabel() }
-                .forEach { result.add(LookupElementBuilder.create(it).withTypeText("label")) }
+            // Globals from the current file — anything that implements NasmNamedElement
+            // (regular labels `foo:`, data labels `msg db ...`, equ labels `MAX equ ...`).
+            // Local labels (.foo) are scoped separately below.
+            PsiTreeUtil.findChildrenOfType(file, NasmNamedElement::class.java)
+                .mapNotNull { def -> def.name?.let { it to def } }
+                .filter { (name, _) -> !name.isNasmLocalLabel() }
+                .forEach { (name, def) ->
+                    result.add(LookupElementBuilder.create(name).withTypeText(labelKind(def)))
+                }
 
-            // Local labels: only those in the reference's current scope.
+            // Local labels apply only to NasmLabelDef (the `foo:` colon form); NASM
+            // doesn't allow `.foo db ...` as a local data definition.
             currentScopeBounds(file, element)?.let { (start, end) ->
                 PsiTreeUtil.findChildrenOfType(file, NasmLabelDef::class.java)
                     .filter { def ->
@@ -126,13 +131,18 @@ class NasmLabelReference(element: PsiElement, range: TextRange) :
             .filter { vf -> containing?.virtualFile?.let { it != vf } != false }
             .forEach { vf ->
                 val file = manager.findFile(vf) as? NasmFile ?: return@forEach
-                PsiTreeUtil.findChildrenOfType(file, NasmLabelDef::class.java)
+                PsiTreeUtil.findChildrenOfType(file, NasmNamedElement::class.java)
                     .mapNotNull { it.name }
                     .filter { !it.isNasmLocalLabel() }
                     .forEach { result.add(LookupElementBuilder.create(it).withTypeText(vf.name)) }
             }
 
         return result.toTypedArray()
+    }
+
+    private fun labelKind(def: NasmNamedElement): String = when (def) {
+        is NasmLabelDef -> "label"
+        else -> "symbol"
     }
 }
 

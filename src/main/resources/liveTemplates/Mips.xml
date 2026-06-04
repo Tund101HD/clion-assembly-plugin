@@ -75,4 +75,20 @@
         </context>
     </template>
 
+    <template name="lbldoc"
+              value="# $SUMMARY$&#10;# Operands: $OPERANDS$&#10;# Clobbers: $CLOBBERS$&#10;# Result:   $RESULT$&#10;# Note:     $NOTE$"
+              description="Label documentation block (Operands/Clobbers/Result/Note)"
+              toReformat="false"
+              toShortenFQNames="false">
+        <variable name="SUMMARY"  expression="" defaultValue="&quot;one-line summary&quot;" alwaysStopAt="true"/>
+        <variable name="OPERANDS" expression="" defaultValue="&quot;&#36;a0 = ..., &#36;a1 = ...&quot;" alwaysStopAt="true"/>
+        <variable name="CLOBBERS" expression="" defaultValue="&quot;&#36;t0, &#36;t1&quot;" alwaysStopAt="true"/>
+        <variable name="RESULT"   expression="" defaultValue="&quot;&#36;v0 = ...&quot;" alwaysStopAt="true"/>
+        <variable name="NOTE"     expression="" defaultValue="&quot;&quot;" alwaysStopAt="true"/>
+        <context>
+            <option name="MIPS" value="true"/>
+        </context>
+    </template>
+
+
 </templateSet>
