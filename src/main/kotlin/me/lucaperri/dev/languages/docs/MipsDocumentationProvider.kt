@@ -81,12 +81,15 @@ class MipsDocumentationProvider : AbstractDocumentationProvider() {
 
             val match = mipsTagRegex.matchEntire(line)
             if (match != null) {
-                val tag = match.groupValues[1]
+                val rawTag = match.groupValues[1].replaceFirstChar { it.uppercase() }
                 val rest = match.groupValues[2].trim()
-                when (tag.lowercase()) {
+                when (rawTag.lowercase()) {
                     "function" -> continue
                     "purpose" -> if (rest.isNotEmpty()) descLines.add(rest)
                     else -> {
+                        // Normalise legacy/synonym headers to the canonical popup
+                        // labels so e.g. `# Input: $a0` renders as `Operands:`.
+                        val tag = HEADER_ALIASES[rawTag] ?: rawTag
                         val content = mutableListOf<String>()
                         if (rest.isNotEmpty()) content.add(rest)
                         sections.add(tag to content)
@@ -100,6 +103,17 @@ class MipsDocumentationProvider : AbstractDocumentationProvider() {
         val description = descLines.joinToString("<br>")
         val result = sections.map { (tag, tagLines) -> tag to tagLines.joinToString("<br>") }
         return description to result
+    }
+
+    private companion object {
+        private val HEADER_ALIASES = mapOf(
+            "Input"   to "Operands",
+            "Output"  to "Result",
+            "Inputs"  to "Operands",
+            "Outputs" to "Result",
+            "Args"    to "Operands",
+            "Returns" to "Result",
+        )
     }
 
     private fun labelDoc(label: MipsNamedElement): String = buildString {

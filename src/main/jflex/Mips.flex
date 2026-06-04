@@ -30,7 +30,11 @@ HEX_NUMBER       = 0[xX][0-9a-fA-F]+
 DEC_NUMBER       = [0-9]+
 NUMBER           = {HEX_NUMBER}|{DEC_NUMBER}
 
+// Terminated and unterminated forms — the unterminated alternative keeps a
+// half-typed `"hel` lexed as STRING rather than BAD_CHARACTER so the IDE's
+// quote handler can complete the closing quote sanely.
 STRING           = \"([^\"\r\n\\]|\\.)*\"
+STRING_OPEN      = \"([^\"\r\n\\]|\\.)*
 
 // MIPS directives are dot-prefixed: .text, .data, .globl, .word, .asciiz, ...
 DIRECTIVE        = \.[a-zA-Z_][a-zA-Z0-9_]*
@@ -43,6 +47,7 @@ DIRECTIVE        = \.[a-zA-Z_][a-zA-Z0-9_]*
 {DIRECTIVE}                         { return MipsTypes.DIRECTIVE; }
 {NUMBER}                            { return MipsTypes.NUMBER; }
 {STRING}                            { return MipsTypes.STRING; }
+{STRING_OPEN}                       { return MipsTypes.STRING; }
 {IDENTIFIER}                        { return MipsTypes.IDENTIFIER; }
 ":"                                 { return MipsTypes.COLON; }
 ","                                 { return MipsTypes.COMMA; }

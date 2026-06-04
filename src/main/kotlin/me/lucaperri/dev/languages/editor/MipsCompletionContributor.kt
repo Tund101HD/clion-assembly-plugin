@@ -5,7 +5,6 @@ import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
-import com.intellij.codeInsight.completion.PrefixMatcher
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.util.TextRange
@@ -16,7 +15,7 @@ import me.lucaperri.dev.languages.MipsLanguage
 import me.lucaperri.dev.languages.highlighting.MipsInstructions
 import me.lucaperri.dev.languages.highlighting.MipsRegisters
 import me.lucaperri.dev.languages.psi.MipsFile
-import me.lucaperri.dev.languages.psi.MipsLabelDef
+import me.lucaperri.dev.languages.psi.MipsNamedElement
 
 class MipsCompletionContributor : CompletionContributor() {
 
@@ -53,7 +52,11 @@ class MipsCompletionContributor : CompletionContributor() {
                             )
                         }
                         if (file != null) {
-                            PsiTreeUtil.findChildrenOfType(file, MipsLabelDef::class.java)
+                            // All defined symbols (colon labels, `.local:` labels, GAS-style
+                            // `name = expr` assignments) share the MipsNamedElement marker
+                            // interface, so a single sweep covers strings, length symbols, and
+                            // ordinary labels at once.
+                            PsiTreeUtil.findChildrenOfType(file, MipsNamedElement::class.java)
                                 .mapNotNull { it.name }
                                 .forEach {
                                     typedResult.addElement(
