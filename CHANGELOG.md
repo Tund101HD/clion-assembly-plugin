@@ -8,6 +8,7 @@
 
 ### Fixed
 
+- **Language ID conflict on startup** — `NasmLanguage` and `MipsLanguage` now call `Language.findLanguageByID` before registering, so the IDE no longer crashes with `ImplementationConflictException` when another plugin (e.g. a third-party NASM plugin) has already claimed the same language ID.
 - **Strings now auto-close in `.data` (and operand) position** — typing `"` or `'` in NASM (and `"` in MIPS) inserts the matching closing quote via a new `lang.quoteHandler` registration. Previously the IDE had no handler, so users had to type both quotes manually and the in-progress opener lexed as `BAD_CHARACTER` until they did.
 - **Half-typed strings stay recognized as strings** — the JFlex lexers now accept an unterminated opener (`"hel`, `'foo`, `` `bar ``), stopping at end-of-line and emitting a `STRING` token. The terminated form is matched first so closing quotes still take precedence whenever they're present.
 - **Operand completion now offers data labels and equ symbols** — `NasmLabelReference.getVariants()` previously only enumerated colon-form `NasmLabelDef`, so labels defined as `msg db "..."` or `MAX equ 100` never appeared in the lookup. Switched to iterating `NasmNamedElement`, picking up data labels, equ constants, and (in MIPS) GAS-style `name = expr` assignments and `.local:` labels.
