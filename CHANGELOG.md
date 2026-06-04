@@ -4,22 +4,6 @@
 
 ## [Unreleased]
 
-## [1.0.2] - 2026-06-04
-
-### Fixed
-
-- **Language ID conflict on startup** — `NasmLanguage` and `MipsLanguage` now call `Language.findLanguageByID` before registering, so the IDE no longer crashes with `ImplementationConflictException` when another plugin (e.g. a third-party NASM plugin) has already claimed the same language ID.
-- **Strings now auto-close in `.data` (and operand) position** — typing `"` or `'` in NASM (and `"` in MIPS) inserts the matching closing quote via a new `lang.quoteHandler` registration. Previously the IDE had no handler, so users had to type both quotes manually and the in-progress opener lexed as `BAD_CHARACTER` until they did.
-- **Half-typed strings stay recognized as strings** — the JFlex lexers now accept an unterminated opener (`"hel`, `'foo`, `` `bar ``), stopping at end-of-line and emitting a `STRING` token. The terminated form is matched first so closing quotes still take precedence whenever they're present.
-- **Operand completion now offers data labels and equ symbols** — `NasmLabelReference.getVariants()` previously only enumerated colon-form `NasmLabelDef`, so labels defined as `msg db "..."` or `MAX equ 100` never appeared in the lookup. Switched to iterating `NasmNamedElement`, picking up data labels, equ constants, and (in MIPS) GAS-style `name = expr` assignments and `.local:` labels.
-- **Label-doc popup no longer merges `Result:` (and other headers) into `Input:`** — the NASM comment parser only recognised `Input|Output|Flags|Clobbers` as section headers, so any `Result:`, `Note:`, `Operands:`, `Clobbers:`, etc. line that followed an `Input:` section was silently appended to it as continuation text. The regex is now permissive (`^(\w+)\s*:`) so every `Word:`-prefixed line opens its own section, and the canonical popup order (Flags → Operands → Clobbers → Result → Note) is preserved when rendering. Custom user sections (e.g. `Todo:`, `Side-effects:`) sort after the canonical list.
-
-### Added
-
-- **Autocomplete for `db` / `dw` / `dd` / `dq` / `dt` / `resb` / `resw` / `resd` / `resq` / `rest`** at both the start of a line and the data-statement position (`buffer <caret>` → `resb`, `resq`, …). The `NasmCompletionContributor` now distinguishes start-of-line / after-bare-identifier / operand contexts and routes back to operand suggestions when the leading identifier is a known mnemonic, so `mov ` still completes registers.
-- **Label-documentation live template** — `lbldoc` in both NASM and MIPS expands to a comment block prefilled with the popup sections most relevant to user functions (Operands / Clobbers / Result / Flags / Note on NASM; Operands / Clobbers / Result / Note on MIPS). Each field is a tab stop so Tab walks through them; the template also appears in basic completion. Instruction-only popup sections (`Alias` / `Mode` / `Privilege` / `Requires`) are deliberately not part of the template — they rarely apply to user labels — but the parser still renders them correctly if a comment uses them.
-- **Header aliasing in label-doc comments** — `Input:` / `Inputs:` / `Args:` all render under the canonical `Operands:` header, and `Output:` / `Outputs:` / `Returns:` all render under `Result:`. Comments authored in either vocabulary now produce the same popup, matching the instruction-doc taxonomy.
-
 ## [1.0.1] - 2026-05-27
 
 Hotfix release. The initial Marketplace upload was built from a pre-fix snapshot of the source tree, so users installing v1.0.0 on top of an existing CLion configuration hit a `Unknown bundled file template` assertion that prevented the plugin from loading. This release re-packages the post-fix tree and bundles the other late-cycle improvements that missed the original zip.
@@ -42,6 +26,22 @@ Hotfix release. The initial Marketplace upload was built from a pre-fix snapshot
 ### Changed
 
 - **Plugin repository metadata repointed** from the old `clion-assembly-plugin` repo to the public `clion-nasm` repo — `pluginRepositoryUrl` in `gradle.properties`, `repositoryUrl` in `build.gradle.kts` (drives the changelog plugin and the Marketplace "Source Code" link), plus `README.md` and `CHANGELOG.md` link footers.
+
+## [1.0.2] - 2026-06-04
+
+### Fixed
+
+- **Language ID conflict on startup** — `NasmLanguage` and `MipsLanguage` now call `Language.findLanguageByID` before registering, so the IDE no longer crashes with `ImplementationConflictException` when another plugin (e.g. a third-party NASM plugin) has already claimed the same language ID.
+- **Strings now auto-close in `.data` (and operand) position** — typing `"` or `'` in NASM (and `"` in MIPS) inserts the matching closing quote via a new `lang.quoteHandler` registration. Previously the IDE had no handler, so users had to type both quotes manually and the in-progress opener lexed as `BAD_CHARACTER` until they did.
+- **Half-typed strings stay recognized as strings** — the JFlex lexers now accept an unterminated opener (`"hel`, `'foo`, `` `bar ``), stopping at end-of-line and emitting a `STRING` token. The terminated form is matched first so closing quotes still take precedence whenever they're present.
+- **Operand completion now offers data labels and equ symbols** — `NasmLabelReference.getVariants()` previously only enumerated colon-form `NasmLabelDef`, so labels defined as `msg db "..."` or `MAX equ 100` never appeared in the lookup. Switched to iterating `NasmNamedElement`, picking up data labels, equ constants, and (in MIPS) GAS-style `name = expr` assignments and `.local:` labels.
+- **Label-doc popup no longer merges `Result:` (and other headers) into `Input:`** — the NASM comment parser only recognised `Input|Output|Flags|Clobbers` as section headers, so any `Result:`, `Note:`, `Operands:`, `Clobbers:`, etc. line that followed an `Input:` section was silently appended to it as continuation text. The regex is now permissive (`^(\w+)\s*:`) so every `Word:`-prefixed line opens its own section, and the canonical popup order (Flags → Operands → Clobbers → Result → Note) is preserved when rendering. Custom user sections (e.g. `Todo:`, `Side-effects:`) sort after the canonical list.
+
+### Added
+
+- **Autocomplete for `db` / `dw` / `dd` / `dq` / `dt` / `resb` / `resw` / `resd` / `resq` / `rest`** at both the start of a line and the data-statement position (`buffer <caret>` → `resb`, `resq`, …). The `NasmCompletionContributor` now distinguishes start-of-line / after-bare-identifier / operand contexts and routes back to operand suggestions when the leading identifier is a known mnemonic, so `mov ` still completes registers.
+- **Label-documentation live template** — `lbldoc` in both NASM and MIPS expands to a comment block prefilled with the popup sections most relevant to user functions (Operands / Clobbers / Result / Flags / Note on NASM; Operands / Clobbers / Result / Note on MIPS). Each field is a tab stop so Tab walks through them; the template also appears in basic completion. Instruction-only popup sections (`Alias` / `Mode` / `Privilege` / `Requires`) are deliberately not part of the template — they rarely apply to user labels — but the parser still renders them correctly if a comment uses them.
+- **Header aliasing in label-doc comments** — `Input:` / `Inputs:` / `Args:` all render under the canonical `Operands:` header, and `Output:` / `Outputs:` / `Returns:` all render under `Result:`. Comments authored in either vocabulary now produce the same popup, matching the instruction-doc taxonomy.
 
 ## [1.0.0] - 2026-05-25
 
@@ -75,7 +75,7 @@ Initial public release.
 - Transparent WSL toolchain detection (binds to CLion's registered WSL toolchain, not `wsl.exe` defaults)
 - Auto-eviction of CLion's broken auto-created CMake Application config for MIPS targets
 
-[Unreleased]: https://github.com/Tund101HD/clion-assembly-plugin/compare/v1.0.2...HEAD
-[1.0.2]: https://github.com/Tund101HD/clion-assembly-plugin/compare/v1.0.1...v1.0.2
-[1.0.1]: https://github.com/Tund101HD/clion-assembly-plugin/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/Tund101HD/clion-assembly-plugin/releases/tag/v1.0.0
+[Unreleased]: https://github.com/Tund101HD/clion-assembly-plugin/compare/1.0.1...HEAD
+[1.0.2]: https://github.com/Tund101HD/clion-assembly-plugin/compare/1.0.0...1.0.2
+[1.0.1]: https://github.com/Tund101HD/clion-assembly-plugin/compare/1.0.2...1.0.1
+[1.0.0]: https://github.com/Tund101HD/clion-assembly-plugin/commits/1.0.0
