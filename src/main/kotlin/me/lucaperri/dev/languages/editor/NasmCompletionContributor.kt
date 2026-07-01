@@ -106,7 +106,11 @@ class NasmCompletionContributor : CompletionContributor() {
             val c = before[end - 1]
             if (c.isLetterOrDigit() || c == '_' || c == '.') end-- else break
         }
-        val trimmed = before.substring(0, end).trimEnd()
+        // trim() (not trimEnd()) so leading indentation is dropped too — otherwise an
+        // indented `    buffer <caret>` keeps its leading spaces, fails BARE_IDENTIFIER_LINE
+        // (which is anchored with ^[a-zA-Z_.?]), and never reaches AFTER_BARE_IDENT, so
+        // db/resb/resq/... are never offered on indented data lines.
+        val trimmed = before.substring(0, end).trim()
 
         if (trimmed.isEmpty() || trimmed.endsWith(":")) return LineContext.MNEMONIC
 

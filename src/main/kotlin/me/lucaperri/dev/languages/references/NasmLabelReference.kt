@@ -16,6 +16,7 @@ import me.lucaperri.dev.languages.psi.NasmLabelDef
 import me.lucaperri.dev.languages.psi.NasmLabelRef
 import me.lucaperri.dev.languages.psi.NasmNamedElement
 import me.lucaperri.dev.languages.psi.NasmTypes
+import me.lucaperri.dev.languages.psi.isNasmLocalLabel
 
 class NasmLabelReference(element: PsiElement, range: TextRange) :
     PsiReferenceBase<PsiElement>(element, range, /* soft = */ true) {
@@ -145,5 +146,3 @@ class NasmLabelReference(element: PsiElement, range: TextRange) :
         else -> "symbol"
     }
 }
-
-private fun String.isNasmLocalLabel(): Boolean = startsWith(".") && !startsWith("..")

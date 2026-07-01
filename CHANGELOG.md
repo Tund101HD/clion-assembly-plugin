@@ -4,7 +4,11 @@
 
 ## [Unreleased]
 
-## [1.0.2] - 2026-06-04
+### Fixed
+
+- **NASM local labels are no longer flagged as duplicates across functions** — the duplicate-label inspection grouped every named element by bare name file-wide, so a `.loop` under `func1:` and a `.loop` under `func2:` were reported as *"Duplicate label '.loop'"* even though NASM scopes each local label to the nearest non-local label above it (exactly how Goto/Rename already resolved them). Local labels (`.foo`, but not `..foo`) are now keyed by their owning scope, so identical local names in different functions coexist; a genuine repeat within one scope is still flagged.
+- **`db` / `resb` / `resq` (and the rest of the data directives) now autocomplete on indented lines** — `NasmCompletionContributor` stripped only trailing whitespace when classifying the caret's line, so an indented `    buffer <caret>` kept its leading spaces, failed the bare-identifier check, and fell through to operand completion (registers only). Leading indentation is now trimmed too, so the data-directive suggestions appear whether or not the statement is indented.
+- **Section folds no longer swallow the next section header (NASM & MIPS)** — the folding builders folded strictly label-to-label with no notion of section boundaries, so collapsing the last label of `section .data` hid the following `section .text` line. Label folds are now bounded by the next section, and each section gets its own fold region (anchored on the header line) covering its body up to the next section. For NASM this keys off the `section`/`segment` statement; for MIPS it keys off the section-defining dot-directives (`.text`, `.data`, `.bss`, `.rodata`, `.section`, …) while leaving body directives like `.globl` / `.align` / `.word` as ordinary foldable content.
 
 ### Fixed
 
