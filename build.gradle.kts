@@ -1,4 +1,5 @@
 import org.jetbrains.changelog.Changelog
+import org.jetbrains.changelog.ChangelogSectionUrlBuilder
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.tasks.GenerateLexerTask
 import org.jetbrains.intellij.platform.gradle.tasks.GenerateParserTask
@@ -102,4 +103,17 @@ changelog {
     version.set(project.version.toString())
     repositoryUrl.set("https://github.com/Tund101HD/clion-assembly-plugin")
     groups.set(emptyList())
+    // Our git tags are v-prefixed (v1.0.3), but the changelog plugin defaults to bare
+    // version numbers in the compare/commits URLs, so the generated links 404. Prefix
+    // every version in the section URLs with `v` so they resolve to the real tags.
+    sectionUrlBuilder.set(
+        ChangelogSectionUrlBuilder { repositoryUrl, current, previous, isUnreleased ->
+            when {
+                isUnreleased && previous != null -> "$repositoryUrl/compare/v$previous...HEAD"
+                isUnreleased -> "$repositoryUrl/commits/HEAD"
+                previous != null -> "$repositoryUrl/compare/v$previous...v$current"
+                else -> "$repositoryUrl/commits/v$current"
+            }
+        }
+    )
 }
