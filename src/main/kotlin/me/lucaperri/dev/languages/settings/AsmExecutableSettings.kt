@@ -30,6 +30,13 @@ class AsmExecutableSettings : PersistentStateComponent<AsmExecutableSettings.Sta
         var defaultMipsArch: MipsArch = MipsArch.MIPS32R2,
         var defaultMipsAbi: MipsAbi = MipsAbi.AUTO,
         var defaultProjectType: ProjectType = ProjectType.NASM,
+        // Editor: offer instruction/register/label completion inside `;` / `#` comments.
+        var completeInComments: Boolean = false,
+        // NASM: labels from other files that aren't declared `global` there. false = still
+        // resolve them but warn; true = hide them and make an `extern` of one an error.
+        var hideNonGlobalLabels: Boolean = false,
+        // NASM: error on `extern foo` when no NASM file defines `foo` (libc/WinAPI names exempt).
+        var reportUndefinedExterns: Boolean = true,
         // Debugger scaffolding — persisted but not yet consumed.
         var autoLaunchGdbOnQemu: Boolean = true,
         var qemuX86_64Path: String = "",
@@ -84,6 +91,18 @@ class AsmExecutableSettings : PersistentStateComponent<AsmExecutableSettings.Sta
     var defaultProjectType: ProjectType
         get() = state.defaultProjectType
         set(value) { state.defaultProjectType = value }
+
+    var completeInComments: Boolean
+        get() = state.completeInComments
+        set(value) { state.completeInComments = value }
+
+    var hideNonGlobalLabels: Boolean
+        get() = state.hideNonGlobalLabels
+        set(value) { state.hideNonGlobalLabels = value }
+
+    var reportUndefinedExterns: Boolean
+        get() = state.reportUndefinedExterns
+        set(value) { state.reportUndefinedExterns = value }
 
     var autoLaunchGdbOnQemu: Boolean
         get() = state.autoLaunchGdbOnQemu

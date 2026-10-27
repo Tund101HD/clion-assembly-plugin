@@ -154,10 +154,23 @@
         <lang.refactoringSupport language="MIPS"
                                  implementationClass="me.lucaperri.dev.languages.references.MipsRefactoringSupportProvider"/>
 
-        <completion.contributor language="NASM"
+        <lang.namesValidator language="NASM"
+                             implementationClass="me.lucaperri.dev.languages.references.NasmNamesValidator"/>
+        <lang.namesValidator language="MIPS"
+                             implementationClass="me.lucaperri.dev.languages.references.MipsNamesValidator"/>
+        <renameInputValidator implementation="me.lucaperri.dev.languages.references.NasmRenameInputValidator"/>
+        <renameInputValidator implementation="me.lucaperri.dev.languages.references.MipsRenameInputValidator"/>
+
+        <!-- order="first" so stopHere() on numbers/comments also keeps the reference-variant
+             and word-completion contributors quiet (see AsmCompletionGuards). -->
+        <completion.contributor language="NASM" order="first"
                                 implementationClass="me.lucaperri.dev.languages.editor.NasmCompletionContributor"/>
-        <completion.contributor language="MIPS"
+        <completion.contributor language="MIPS" order="first"
                                 implementationClass="me.lucaperri.dev.languages.editor.MipsCompletionContributor"/>
+        <completion.confidence language="NASM"
+                               implementationClass="me.lucaperri.dev.languages.editor.AsmCompletionConfidence"/>
+        <completion.confidence language="MIPS"
+                               implementationClass="me.lucaperri.dev.languages.editor.AsmCompletionConfidence"/>
 
         <lang.documentationProvider language="NASM"
                                     implementationClass="me.lucaperri.dev.languages.docs.NasmDocumentationProvider"/>
@@ -214,6 +227,13 @@
                          implementationClass="me.lucaperri.dev.languages.inspections.NasmUndefinedSymbolInspection"
                          shortName="NasmUndefinedSymbol"
                          displayName="Undefined symbol"
+                         groupName="NASM"
+                         level="ERROR"
+                         enabledByDefault="true"/>
+        <localInspection language="NASM"
+                         implementationClass="me.lucaperri.dev.languages.inspections.NasmExternInspection"
+                         shortName="NasmInvalidExtern"
+                         displayName="Invalid extern declaration"
                          groupName="NASM"
                          level="ERROR"
                          enabledByDefault="true"/>

@@ -16,14 +16,17 @@ import me.lucaperri.dev.languages.psi.NasmLabelDef
 import me.lucaperri.dev.languages.psi.NasmLabelRef
 import me.lucaperri.dev.languages.psi.NasmNamedElement
 import me.lucaperri.dev.languages.psi.NasmTypes
+import me.lucaperri.dev.languages.psi.findNonLocalDefinition
+import me.lucaperri.dev.languages.psi.foreignNasmDefinitions
+import me.lucaperri.dev.languages.psi.globalNames
 import me.lucaperri.dev.languages.psi.isNasmLocalLabel
+import me.lucaperri.dev.languages.settings.AsmExecutableSettings
 
 class NasmLabelReference(element: PsiElement, range: TextRange) :
     PsiReferenceBase<PsiElement>(element, range, /* soft = */ true) {
 
     override fun resolve(): PsiElement? {
         val name = value
-        val project = element.project
         val containing = element.containingFile as? NasmFile
 
         // NASM local labels (`.foo`, but not `..foo` which is reserved for special
@@ -34,25 +37,17 @@ class NasmLabelReference(element: PsiElement, range: TextRange) :
         }
 
         // Globals: prefer the current file (matches the assembler's "local first" lookup).
-        containing?.let { file ->
-            findGlobalNamedElement(file, name)?.let { return it }
-        }
+        val file = containing ?: return null
+        file.findNonLocalDefinition(name)?.let { return it }
 
-        val manager = PsiManager.getInstance(project)
-        val scope = GlobalSearchScope.allScope(project)
-        for (vf in FileTypeIndex.getFiles(NasmFileType.INSTANCE, scope)) {
-            val file = manager.findFile(vf) as? NasmFile ?: continue
-            if (file === containing) continue
-            findGlobalNamedElement(file, name)?.let { return it }
-        }
-        return null
+        // Other files: a `global` definition wins. One that isn't exported is only
+        // reachable while the user hasn't opted into hiding it; NasmExternInspection
+        // reports such a reference either way.
+        val hideNonGlobal = AsmExecutableSettings.getInstance().hideNonGlobalLabels
+        return foreignNasmDefinitions(file, name)
+            .firstOrNull { it.isGlobal || !hideNonGlobal }
+            ?.element
     }
-
-    private fun findGlobalNamedElement(file: NasmFile, name: String): NasmNamedElement? =
-        PsiTreeUtil.findChildrenOfType(file, NasmNamedElement::class.java)
-            .firstOrNull { def ->
-                def.name == name && !(def is NasmLabelDef && def.name?.isNasmLocalLabel() == true)
-            }
 
     private fun findLocalLabelInScope(name: String, refElement: PsiElement, file: NasmFile): NasmLabelDef? {
         val (start, end) = currentScopeBounds(file, refElement) ?: return null
@@ -127,15 +122,23 @@ class NasmLabelReference(element: PsiElement, range: TextRange) :
                 .forEach { result.add(LookupElementBuilder.create(it).withTypeText("extern")) }
         }
 
+        val hideNonGlobal = AsmExecutableSettings.getInstance().hideNonGlobalLabels
+        val originVf = containing?.originalFile?.virtualFile
         val manager = PsiManager.getInstance(project)
         FileTypeIndex.getFiles(NasmFileType.INSTANCE, GlobalSearchScope.allScope(project))
-            .filter { vf -> containing?.virtualFile?.let { it != vf } != false }
+            .filter { vf -> vf != originVf }
             .forEach { vf ->
                 val file = manager.findFile(vf) as? NasmFile ?: return@forEach
+                val globals = file.globalNames()
                 PsiTreeUtil.findChildrenOfType(file, NasmNamedElement::class.java)
                     .mapNotNull { it.name }
                     .filter { !it.isNasmLocalLabel() }
-                    .forEach { result.add(LookupElementBuilder.create(it).withTypeText(vf.name)) }
+                    .forEach { name ->
+                        val isGlobal = name in globals
+                        if (!isGlobal && hideNonGlobal) return@forEach
+                        val typeText = if (isGlobal) vf.name else "${vf.name} (not global)"
+                        result.add(LookupElementBuilder.create(name).withTypeText(typeText))
+                    }
             }
 
         return result.toTypedArray()

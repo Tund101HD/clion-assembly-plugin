@@ -29,6 +29,10 @@ class MipsCompletionContributor : CompletionContributor() {
                     context: ProcessingContext,
                     result: CompletionResultSet
                 ) {
+                    if (AsmCompletionGuards.shouldSuppress(parameters.position, parameters.editor.document, parameters.offset)) {
+                        result.stopHere()
+                        return
+                    }
                     val rawPrefix = currentWordPrefix(parameters)
                     val typedResult = if (rawPrefix.startsWith("$")) {
                         result.withPrefixMatcher(CamelHumpMatcher(rawPrefix))

@@ -2,6 +2,7 @@ package me.lucaperri.dev.languages.settings
 
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.util.ui.FormBuilder
 import me.lucaperri.dev.languages.run.toolchain.PlatformHelper
 import javax.swing.DefaultComboBoxModel
@@ -11,8 +12,9 @@ import javax.swing.JPanel
 
 // Settings → Assembly → General.
 // Hosts plugin-wide preferences that aren't paths: platform override,
-// default NASM architecture, and default project type for the New Project
-// dialog.
+// default NASM architecture, default project type for the New Project
+// dialog, and editor behaviour (completion inside comments, NASM cross-file
+// symbol visibility).
 class AssemblyGeneralConfigurable : Configurable {
 
     private var platformCombo: ComboBox<PlatformOverride>? = null
@@ -22,6 +24,9 @@ class AssemblyGeneralConfigurable : Configurable {
     private var mipsAbiHintLabel: JLabel? = null
     private var typeCombo: ComboBox<ProjectType>? = null
     private var detectedLabel: JLabel? = null
+    private var commentCompletionCheckBox: JBCheckBox? = null
+    private var hideNonGlobalCheckBox: JBCheckBox? = null
+    private var undefinedExternCheckBox: JBCheckBox? = null
 
     override fun getDisplayName(): String = "General"
 
@@ -57,6 +62,25 @@ class AssemblyGeneralConfigurable : Configurable {
             selectedItem = settings.defaultProjectType
         }
         detectedLabel = JLabel(detectedHtml())
+        commentCompletionCheckBox = JBCheckBox(
+            "Autocomplete inside comments",
+            settings.completeInComments
+        )
+        hideNonGlobalCheckBox = JBCheckBox(
+            "NASM: hide labels from other files unless they are declared global there",
+            settings.hideNonGlobalLabels
+        )
+        undefinedExternCheckBox = JBCheckBox(
+            "NASM: report extern symbols not defined in any NASM file",
+            settings.reportUndefinedExterns
+        )
+        val visibilityHelp = JLabel(
+            "<html><body style='width: 480px'><i>When labels are not hidden, Go to Declaration and " +
+            "completion still reach non-global labels in other files, and an <code>extern</code> " +
+            "of one is reported as a warning instead of an error. Common libc and WinAPI names " +
+            "(<code>printf</code>, <code>malloc</code>, <code>ExitProcess</code>, &hellip;) are never " +
+            "reported as undefined.</i></body></html>"
+        )
 
         val mipsArchHelp = JLabel(
             "<html><body style='width: 480px'><i>Passed as <code>-march=&lt;value&gt;</code> " +
@@ -84,6 +108,11 @@ class AssemblyGeneralConfigurable : Configurable {
             .addComponent(mipsAbiHintLabel!!)
             .addComponent(mipsAbiHelp)
             .addLabeledComponent("Default new-project type:", typeCombo!!)
+            .addSeparator()
+            .addComponent(commentCompletionCheckBox!!)
+            .addComponent(hideNonGlobalCheckBox!!)
+            .addComponent(undefinedExternCheckBox!!)
+            .addComponent(visibilityHelp)
             .addComponentFillVertically(JPanel(), 0)
             .panel
     }
@@ -122,6 +151,9 @@ class AssemblyGeneralConfigurable : Configurable {
             || (mipsArchCombo?.selectedItem as? MipsArch) != s.defaultMipsArch
             || (mipsAbiCombo?.selectedItem as? MipsAbi) != s.defaultMipsAbi
             || (typeCombo?.selectedItem as? ProjectType) != s.defaultProjectType
+            || commentCompletionCheckBox?.isSelected != s.completeInComments
+            || hideNonGlobalCheckBox?.isSelected != s.hideNonGlobalLabels
+            || undefinedExternCheckBox?.isSelected != s.reportUndefinedExterns
     }
 
     override fun apply() {
@@ -131,6 +163,9 @@ class AssemblyGeneralConfigurable : Configurable {
         (mipsArchCombo?.selectedItem as? MipsArch)?.let { s.defaultMipsArch = it }
         (mipsAbiCombo?.selectedItem as? MipsAbi)?.let { s.defaultMipsAbi = it }
         (typeCombo?.selectedItem as? ProjectType)?.let { s.defaultProjectType = it }
+        commentCompletionCheckBox?.let { s.completeInComments = it.isSelected }
+        hideNonGlobalCheckBox?.let { s.hideNonGlobalLabels = it.isSelected }
+        undefinedExternCheckBox?.let { s.reportUndefinedExterns = it.isSelected }
         detectedLabel?.text = detectedHtml()
     }
 
@@ -141,6 +176,9 @@ class AssemblyGeneralConfigurable : Configurable {
         mipsArchCombo?.selectedItem = s.defaultMipsArch
         mipsAbiCombo?.selectedItem = s.defaultMipsAbi
         typeCombo?.selectedItem = s.defaultProjectType
+        commentCompletionCheckBox?.isSelected = s.completeInComments
+        hideNonGlobalCheckBox?.isSelected = s.hideNonGlobalLabels
+        undefinedExternCheckBox?.isSelected = s.reportUndefinedExterns
         detectedLabel?.text = detectedHtml()
         mipsAbiHintLabel?.text = abiHintHtml(s.defaultMipsArch, s.defaultMipsAbi)
     }
@@ -153,5 +191,8 @@ class AssemblyGeneralConfigurable : Configurable {
         mipsAbiHintLabel = null
         typeCombo = null
         detectedLabel = null
+        commentCompletionCheckBox = null
+        hideNonGlobalCheckBox = null
+        undefinedExternCheckBox = null
     }
 }

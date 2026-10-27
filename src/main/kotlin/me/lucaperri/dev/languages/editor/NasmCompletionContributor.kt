@@ -30,6 +30,10 @@ class NasmCompletionContributor : CompletionContributor() {
                     context: ProcessingContext,
                     result: CompletionResultSet
                 ) {
+                    if (AsmCompletionGuards.shouldSuppress(parameters.position, parameters.editor.document, parameters.offset)) {
+                        result.stopHere()
+                        return
+                    }
                     val ctx = lineContext(parameters)
                     val file = parameters.originalFile as? NasmFile
 

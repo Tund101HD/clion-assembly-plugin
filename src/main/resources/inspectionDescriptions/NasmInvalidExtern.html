@@ -1,0 +1,33 @@
+<html>
+<body>
+Reports <code>extern</code> declarations that cannot link: the symbol is defined in this same file,
+is defined in another file without being declared <code>global</code> there, or is not defined in
+any NASM file of the project.
+
+<p>
+    For example:
+</p>
+<pre><code>
+    ; lib.asm
+helper:                 ; no 'global helper' -- not visible to other object files
+    ret
+
+    ; main.asm
+    extern  helper      ; 'helper' is defined in lib.asm but not declared global there
+    extern  missing     ; 'missing' is not defined in any NASM file of the project
+</code></pre>
+<!-- tooltip end -->
+<p>
+    A non-global symbol from another file is reported as a warning (on the <code>extern</code> and on
+    every use) and is still reachable through Go to Declaration and completion. Enable
+    <i>Settings | Assembly | General | NASM: hide labels from other files unless they are declared
+    global there</i> to hide such symbols and report them as errors instead.
+</p>
+<p>
+    Symbols from libc or the Windows API (<code>printf</code>, <code>malloc</code>,
+    <code>ExitProcess</code>, &hellip;) are never reported as undefined. For other symbols provided by
+    C files or libraries, turn off <i>NASM: report extern symbols not defined in any NASM file</i> in
+    the same settings page.
+</p>
+</body>
+</html>
