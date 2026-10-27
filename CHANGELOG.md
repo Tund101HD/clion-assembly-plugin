@@ -4,6 +4,20 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-27
+
+### Fixed
+
+- **Renaming local labels works again (NASM & MIPS)** — no `lang.namesValidator` was registered, so the platform fell back to Java identifier rules and rejected every name with a leading dot; any rename of `.loop` failed with *"Inserted identifier is not valid"*. Both languages now validate against their own identifier syntax, reject register (and, for NASM, reserved keyword) names, and refuse renames that would turn a local label into a global one or vice versa, since that silently changes label scoping.
+- **No completion popup while typing integer literals** — `10`, `0x1F`, `1fh`, `$1F` (NASM) and `42` (MIPS) no longer trigger instruction/register suggestions. MIPS numeric registers such as `$1` still complete.
+- **Non-global labels from other files are flagged (NASM)** — a label is only visible to other object files when its file declares it `global`. Using one via `extern` now shows *"'foo' is defined in lib.asm but not declared global there"* as a warning on the `extern` and every use; completion marks such labels as *(not global)*, and global definitions are preferred when resolving.
+
+### Added
+
+- **Setting: Autocomplete inside comments** (Settings → Assembly → General, off by default) — completion no longer pops up while writing `;` / `#` comments unless enabled.
+- **Setting: NASM: hide labels from other files unless they are declared global there** (off by default) — when on, Go to Declaration and completion stop reaching non-global labels in other files, and an `extern` of one becomes an error.
+- **Inspection: Invalid extern declaration (NASM)** — reports `extern foo` when `foo` is defined in the same file, defined elsewhere without `global`, or not defined in any NASM file of the project. Common libc and WinAPI names (`printf`, `malloc`, `ExitProcess`, …) are exempt from the last check, which can be switched off entirely with **NASM: report extern symbols not defined in any NASM file** for mixed C/assembly projects.
+
 ## [1.0.3] - 2026-07-01
 
 ### Fixed
@@ -83,7 +97,8 @@ Initial public release.
 - Transparent WSL toolchain detection (binds to CLion's registered WSL toolchain, not `wsl.exe` defaults)
 - Auto-eviction of CLion's broken auto-created CMake Application config for MIPS targets
 
-[Unreleased]: https://github.com/Tund101HD/clion-assembly-plugin/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/Tund101HD/clion-assembly-plugin/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/Tund101HD/clion-assembly-plugin/compare/v1.0.3...v1.1.0
 [1.0.3]: https://github.com/Tund101HD/clion-assembly-plugin/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/Tund101HD/clion-assembly-plugin/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/Tund101HD/clion-assembly-plugin/compare/v1.0.0...v1.0.1
